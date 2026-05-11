@@ -1,0 +1,193 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="container-fluid py-3">
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="card border-0 shadow-sm rounded-3">
+
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-badge me-2"></i>
+                    {{ title }}
+                </h5>
+
+                <a href="{% url 'role_list' %}" class="btn btn-secondary btn-sm">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="form-label">Role Name</label>
+
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-tag"></i>
+                            </span>
+
+                            <input
+                                type="text"
+                                name="name"
+                                class="form-control"
+                                placeholder="Enter role name"
+                                value="{{ role.name|default:'' }}"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Display Name</label>
+
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-type"></i>
+                            </span>
+
+                            <input
+                                type="text"
+                                name="display_name"
+                                class="form-control"
+                                placeholder="Enter display name"
+                                value="{{ role.display_name|default:'' }}"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label">Description</label>
+
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-card-text"></i>
+                            </span>
+
+                            <textarea
+                                name="description"
+                                class="form-control"
+                                rows="3"
+                                placeholder="Enter description"
+                            >{{ role.description|default:'' }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+
+                        <label class="form-label fw-bold">
+                            Permissions
+                        </label>
+
+                        <div class="row">
+
+                            {% for permission in permissions %}
+
+                            <div class="col-md-4 mb-2">
+
+                                <div class="form-check border rounded p-3 h-100">
+
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        name="permissions"
+                                        value="{{ permission.0 }}"
+                                        id="permission_{{ forloop.counter }}"
+
+                                        {% if permission.0 in role.permissions %}
+                                            checked
+                                        {% endif %}
+                                    >
+
+                                    <label
+                                        class="form-check-label w-100"
+                                        for="permission_{{ forloop.counter }}"
+                                    >
+                                        <strong>{{ permission.1 }}</strong>
+
+                                        <br>
+
+                                        <small class="text-muted">
+                                            {{ permission.2 }}
+                                        </small>
+                                    </label>
+
+                                </div>
+
+                            </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <div class="form-check">
+                            <input
+                                type="checkbox"
+                                class="form-check-input"
+                                name="is_default"
+                                id="is_default"
+
+                                {% if role.is_default %}
+                                    checked
+                                {% endif %}
+                            >
+
+                            <label class="form-check-label" for="is_default">
+                                Default Role
+                            </label>
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <div class="form-check">
+                            <input
+                                type="checkbox"
+                                class="form-check-input"
+                                name="is_active"
+                                id="is_active"
+
+                                {% if role.is_active or not role %}
+                                    checked
+                                {% endif %}
+                            >
+
+                            <label class="form-check-label" for="is_active">
+                                Active Role
+                            </label>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="card-footer bg-white text-end">
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i>
+
+                    Save Role
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

@@ -1,5 +1,3 @@
-# accounts/models.py
-
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
@@ -46,8 +44,6 @@ class Role(models.Model):
     description = models.TextField(blank=True, null=True)
 
     permissions = models.JSONField(default=list, blank=True)
-    # example:
-    # ["dashboard_view", "food_create", "food_update"]
 
     is_default = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)

@@ -1,0 +1,26 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+{% block head_title%}
+        <title>Dashboard | Minia - Minimal Admin & Dashboard Template</title>
+{% endblock %}
+{% block extra_css %}
+        <!-- <link rel="stylesheet" type="text/css" href="{% static 'libs/toastr/build/toastr.min.css' %}"> -->
+        <!-- plugin css -->
+        <link href="{% static 'libs/admin-resources/jquery.vectormap/jquery-jvectormap-1.2.2.css' %}" rel="stylesheet" type="text/css" />      
+        
+{% endblock %}
+{% block content %}
+{% include 'partials/content.html' %}
+{% endblock %}
+
+{% block extra_js %}
+        <!-- apexcharts -->
+        <script src="{% static 'libs/apexcharts/dist/apexcharts.min.js' %}"></script>
+        <!-- toastr plugin -->
+        <!-- <script src="{% static 'libs/toastr/build/toastr.min.js' %}"></script> -->
+        <!-- Plugins js-->
+        <script src="{% static 'libs/admin-resources/jquery.vectormap/jquery-jvectormap-1.2.2.min.js' %}"></script>
+        <script src="{% static 'libs/admin-resources/jquery.vectormap/maps/jquery-jvectormap-world-mill-en.js' %}"></script>
+        <!-- dashboard init -->
+        <script src="{% static 'js/pages/dashboard.init.js' %}"></script>
+{% endblock %}

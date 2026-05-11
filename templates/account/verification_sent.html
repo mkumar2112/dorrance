@@ -1,0 +1,33 @@
+{% extends "account/base_account.html" %}
+{% load static %}
+{% load i18n %}
+{% load socialaccount %}
+{% block head_title %}
+        <title>Login | Minia - Minimal Admin & Dashboard Template</title>
+{% endblock %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="auth-content my-auto">
+                                        <div class="text-center">
+                                            <div class="avatar-lg mx-auto">
+                                                <div class="avatar-title rounded-circle bg-light">
+                                                    <i class="bx bxs-envelope h2 mb-0 text-primary"></i>
+                                                </div>
+                                            </div>
+                                            <div class="p-2 mt-4">
+                                                {% for message in messages %}
+                                                    <div class="alert {{ message.tags }} mb-4" role="alert">
+                                                        <strong>{{ message }}</strong>
+                                                    </div>
+                                                {% endfor %}
+                                                
+                                                
+                                            </div>
+                                        </div>
+                                        <div class="mt-5 text-center">
+                                            <p class="text-muted mb-0">Didn't receive an email ? <a href="#"
+                                                    class="text-primary fw-semibold"> Resend </a> </p>
+                                        </div>
+                                    </div>
+{% endblock %}
