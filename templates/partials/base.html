@@ -30,6 +30,8 @@
         <!-- App Css-->
         <link href="{% static 'css/app.min.css' %}" id="app-style" rel="stylesheet" type="text/css" />
 
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
         {% comment %} <link href="{% static 'css/bootstrap-rtl.min.css' %}" id="bootstrap-style" rel="stylesheet" type="text/css" /> {% endcomment %}
         {% comment %} <link href="{% static 'css/app-rtl.min.css' %}" id="app-style" rel="stylesheet" type="text/css" /> {% endcomment %}
         {% endblock%}
@@ -57,14 +59,16 @@
         {% include 'partials/hori-sidebar.html' %}
         {% endblock %}  {% endcomment %}
 
-        {% block content %}
-        {% include 'partials/content.html' %}
-        {% endblock  %}
+        <div class="main-content">
+            <div class="page-content">
+                {% block content %}
+                    {% include 'partials/content.html' %}
+                {% endblock  %}
+            </div>
+        </div>
         {% block footer %}
         {% include 'partials/footer.html' %}          
         {% endblock %}
-        </div>
-        <!-- end main content-->
 
         </div>
         <!-- END layout-wrapper -->

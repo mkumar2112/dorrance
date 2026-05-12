@@ -1,0 +1,237 @@
+<div class="card border shadow-sm rounded-3">
+
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0" id="roleFormTitle">
+            <i class="bi bi-person-plus me-2"></i>
+            Create Role
+        </h5>
+
+        <button type="button" id="backToListBtn" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i>
+            Back To List
+        </button>
+    </div>
+
+    <div class="card-body">
+
+        <form id="roleForm">
+            {% csrf_token %}
+
+            <input type="hidden" id="roleId" value="">
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label">Role Name <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-person-badge"></i>
+                        </span>
+                        <input type="text" id="roleName" class="form-control" placeholder="Enter role name" required>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Display Name</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-card-text"></i>
+                        </span>
+                        <input type="text" id="roleDisplayName" class="form-control" placeholder="Enter display name">
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label">Description</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-text-paragraph"></i>
+                        </span>
+                        <textarea id="roleDescription" class="form-control" rows="3" placeholder="Enter description"></textarea>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Default Role</label>
+                    <select id="roleIsDefault" class="form-select">
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Status</label>
+                    <select id="roleIsActive" class="form-select">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <hr>
+                    <h6 class="mb-3">
+                        <i class="bi bi-shield-check me-2"></i>
+                        Permissions
+                    </h6>
+
+                    <div class="row g-2">
+                        {% for permission_slug, permission_title, permission_description in permission_choices %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="border rounded-3 p-3 h-100">
+                                <div class="form-check">
+                                    <input
+                                        class="form-check-input permission-checkbox"
+                                        type="checkbox"
+                                        value="{{ permission_slug }}"
+                                        id="permission_{{ permission_slug }}"
+                                    >
+                                    <label class="form-check-label fw-semibold" for="permission_{{ permission_slug }}">
+                                        {{ permission_title }}
+                                    </label>
+                                </div>
+
+                                <small class="text-muted d-block mt-1">
+                                    {{ permission_description }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="col-12 mt-4">
+                    <button type="submit" class="btn btn-primary" id="roleSubmitBtn">
+                        <i class="bi bi-save me-1"></i>
+                        Save Role
+                    </button>
+
+                    <button type="button" id="cancelFormBtn" class="btn btn-outline-secondary">
+                        Cancel
+                    </button>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    const roleForm = document.getElementById("roleForm");
+    const roleId = document.getElementById("roleId");
+
+    const roleFormTitle = document.getElementById("roleFormTitle");
+    const roleSubmitBtn = document.getElementById("roleSubmitBtn");
+
+    const roleName = document.getElementById("roleName");
+    const roleDisplayName = document.getElementById("roleDisplayName");
+    const roleDescription = document.getElementById("roleDescription");
+    const roleIsDefault = document.getElementById("roleIsDefault");
+    const roleIsActive = document.getElementById("roleIsActive");
+
+
+    function getCSRFToken() {
+        return document.querySelector("[name=csrfmiddlewaretoken]").value;
+    }
+
+    function getSelectedPermissions() {
+        let permissions = [];
+
+        document.querySelectorAll(".permission-checkbox:checked").forEach(function(input) {
+            permissions.push(input.value);
+        });
+
+        return permissions;
+    }
+
+    function resetRoleForm() {
+        roleId.value = "";
+        roleForm.reset();
+
+        document.querySelectorAll(".permission-checkbox").forEach(function(input) {
+            input.checked = false;
+        });
+
+        roleFormTitle.innerHTML = `<i class="bi bi-person-plus me-2"></i> Create Role`;
+        roleSubmitBtn.innerHTML = `<i class="bi bi-save me-1"></i> Save Role`;
+    }
+
+    function setRoleFormData(role) {
+        roleId.value = role.id;
+
+        roleName.value = role.name || "";
+        roleDisplayName.value = role.display_name || "";
+        roleDescription.value = role.description || "";
+        roleIsDefault.value = role.is_default ? "true" : "false";
+        roleIsActive.value = role.is_active ? "true" : "false";
+
+        document.querySelectorAll(".permission-checkbox").forEach(function(input) {
+            input.checked = (role.permissions || []).includes(input.value);
+        });
+
+        roleFormTitle.innerHTML = `<i class="bi bi-pencil-square me-2"></i> Update Role`;
+        roleSubmitBtn.innerHTML = `<i class="bi bi-save me-1"></i> Update Role`;
+
+        showFormSection();
+    }
+
+    async function editRole(id) {
+        try {
+            const response = await fetch(`${ROLE_API_URL}${id}/`);
+
+            if (!response.ok) {
+                throw new Error("Role not found");
+            }
+
+            const role = await response.json();
+            setRoleFormData(role);
+
+        } catch (error) {
+            alert("Failed to load role data.");
+        }
+    }
+
+    roleForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const id = roleId.value;
+
+        const payload = {
+            name: roleName.value.trim(),
+            display_name: roleDisplayName.value.trim(),
+            description: roleDescription.value.trim(),
+            is_default: roleIsDefault.value === "true",
+            is_active: roleIsActive.value === "true",
+            permissions: getSelectedPermissions()
+        };
+
+        const url = id ? `${ROLE_API_URL}${id}/` : ROLE_API_URL;
+        const method = id ? "PUT" : "POST";
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCSRFToken()
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.log(data);
+                alert("Failed to save role.");
+                return;
+            }
+
+            resetRoleForm();
+            showListSection();
+            loadRoles();
+
+        } catch (error) {
+            alert("Something went wrong.");
+        }
+    });
+</script>

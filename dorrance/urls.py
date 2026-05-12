@@ -20,6 +20,7 @@ from Home.views import DashboardView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('home/', include('Home.urls')),
+    path('api/', include('Home.apis.urls')),
     path('restaurant/', include('restaurant.urls')),
     path('', DashboardView.dashboard, name='dashboard'),
 ]

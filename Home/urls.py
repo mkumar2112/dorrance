@@ -5,11 +5,11 @@ urlpatterns = [
 
     path("roles/", RoleView.role_list, name="role_list"),
 
-    path("roles/create/", RoleView.role_create, name="role_create"),
+    path("roles/create/", RoleView.role_list, name="role_create"),
 
-    path("roles/<int:pk>/update/", RoleView.role_update, name="role_update"),
+    # path("roles/<int:pk>/update/", RoleView.role_update, name="role_update"),
 
-    path("roles/<int:pk>/delete/", RoleView.role_delete, name="role_delete"),
+    # path("roles/<int:pk>/delete/", RoleView.role_delete, name="role_delete"),
 
 ]
 

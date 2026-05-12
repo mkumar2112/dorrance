@@ -1,0 +1,304 @@
+<!-- SEARCH CARD -->
+<div class="card border shadow-sm rounded-3 mb-3">
+
+
+    <div class="card-body">
+
+        <form id="roleSearchForm">
+
+            <div class="row g-3">
+
+                <div class="col-md-5">
+                    <label class="form-label">Role Name</label>
+
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-person-badge"></i>
+                        </span>
+
+                        <input
+                            type="text"
+                            id="searchRoleName"
+                            class="form-control"
+                            placeholder="Search by role name"
+                        >
+                    </div>
+                </div>
+
+                <div class="col-md-5">
+                    <label class="form-label">Slug</label>
+
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-link-45deg"></i>
+                        </span>
+
+                        <input
+                            type="text"
+                            id="searchRoleSlug"
+                            class="form-control"
+                            placeholder="Search by slug"
+                        >
+                    </div>
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end gap-2">
+
+                    <button class="btn btn-primary w-100" type="submit">
+                        <i class="bi bi-search me-1"></i>
+                        Search
+                    </button>
+
+                    <button
+                        class="btn btn-outline-secondary"
+                        type="button"
+                        id="resetSearchBtn"
+                    >
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- ROLE LIST CARD -->
+<div class="card border shadow-sm rounded-3">
+
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+
+        <h5 class="mb-0">
+            <i class="bi bi-person-badge me-2"></i>
+            Roles
+        </h5>
+
+        <button
+            type="button"
+            id="showFormBtn"
+            class="btn btn-primary btn-sm"
+            onclick="resetRoleForm()"
+        >
+            <i class="bi bi-plus-circle"></i>
+            Add Role
+        </button>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Slug</th>
+                        <th>Permissions</th>
+                        <th>Status</th>
+                        <th width="160">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="roleTableBody">
+
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            Loading roles...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- LIST SCRIPT -->
+<script>
+    const roleTableBody = document.getElementById("roleTableBody");
+
+    const roleSearchForm = document.getElementById("roleSearchForm");
+
+    const searchRoleName = document.getElementById("searchRoleName");
+    const searchRoleSlug = document.getElementById("searchRoleSlug");
+
+    const resetSearchBtn = document.getElementById("resetSearchBtn");
+
+
+    async function loadRoles() {
+
+        const name = searchRoleName.value.trim();
+        const slug = searchRoleSlug.value.trim();
+
+        roleTableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                    Loading roles...
+                </td>
+            </tr>
+        `;
+
+        try {
+
+            const params = new URLSearchParams();
+
+            if (name) {
+                params.append("name", name);
+            }
+
+            if (slug) {
+                params.append("slug", slug);
+            }
+
+            const response = await fetch(`${ROLE_API_URL}?${params.toString()}`, {
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to load roles");
+            }
+
+            const data = await response.json();
+
+            const roles = data.results || data;
+
+            if (!roles.length) {
+
+                roleTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No roles found.
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+            let html = "";
+
+            roles.forEach(role => {
+
+                html += `
+                    <tr>
+
+                        <td>${role.id}</td>
+
+                        <td>
+                            <strong>${role.display_name || role.name}</strong>
+                        </td>
+
+                        <td>
+                            <code>${role.slug}</code>
+                        </td>
+
+                        <td>
+                            ${(role.permissions || []).length}
+                        </td>
+
+                        <td>
+                            ${
+                                role.is_active
+                                ? `<span class="badge bg-success">Active</span>`
+                                : `<span class="badge bg-danger">Inactive</span>`
+                            }
+                        </td>
+
+                        <td>
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-warning"
+                                onclick="editRole(${role.id})"
+                            >
+                                <i class="bi bi-pencil"></i>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-danger"
+                                onclick="deleteRole(${role.id})"
+                            >
+                                <i class="bi bi-trash"></i>
+                            </button>
+
+                        </td>
+
+                    </tr>
+                `;
+            });
+
+            roleTableBody.innerHTML = html;
+
+        } catch (error) {
+
+            roleTableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center text-danger py-4">
+                        Failed to load roles.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    async function deleteRole(id) {
+
+        const confirmDelete = confirm("Are you sure you want to delete this role?");
+
+        if (!confirmDelete) {
+            return;
+        }
+
+        try {
+
+            const response = await fetch(`${ROLE_API_URL}${id}/`, {
+                method: "DELETE",
+                headers: {
+                    "X-CSRFToken": getCSRFToken()
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error("Delete failed");
+            }
+
+            loadRoles();
+
+        } catch (error) {
+            alert("Failed to delete role.");
+        }
+    }
+
+    roleSearchForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        loadRoles();
+    });
+
+    resetSearchBtn.addEventListener("click", function() {
+
+        searchRoleName.value = "";
+        searchRoleSlug.value = "";
+
+        loadRoles();
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        loadRoles();
+    });
+</script>
