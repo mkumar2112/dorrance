@@ -1,45 +1,81 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.utils.text import slugify
-from django.db.models import Q
-from .models import Role, PERMISSION_CHOICES
-
+from .models import *
+from restaurant.models import Organization
 
 
 class DashboardView:
     def dashboard(request):
-        return render(request, "dashboard.html")
+
+        return render(request, "dashboard.html" )
 
 
 class RoleView:
     def role_list(request):
-        search = request.GET.get("search", "").strip()
-
-        roles = Role.objects.filter(is_deleted=False)
-
-        if search:
-            roles = roles.filter(
-                Q(name__icontains=search) |
-                Q(slug__icontains=search) |
-                Q(display_name__icontains=search)
-            )
-
-        context = {
-            "permission_choices": PERMISSION_CHOICES,
-            "roles": roles,
-            "search": search,
-        }
-
-        return render(request, "home/roles/layout.html", context)
+        permission_choices = PERMISSION_CHOICES
+        return render(request, "home/roles/layout.html", {
+            "permission_choices": permission_choices,
+        })
 
 
 
 
-        role = get_object_or_404(Role, pk=pk, is_deleted=False)
+class UserView:
+    def user_list(request):
+        return render(request, "home/users/layout.html")
 
-        role.is_deleted = True
-        role.save(update_fields=["is_deleted"])
 
-        messages.success(request, "Role deleted successfully.")
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import redirect, render
 
-        return redirect("role_list")
+class AuthView:
+
+    @staticmethod
+    def login(request):
+
+        if request.method == "POST":
+
+            mobile_number = request.POST.get("mobile_number")
+            password = request.POST.get("password")
+
+            try:
+                user = User.objects.get(
+                    mobile_number=mobile_number
+                )
+
+                if user.check_password(password):
+
+                    login(request, user)
+
+                    messages.success(
+                        request,
+                        "Login successful"
+                    )
+
+                    return redirect("/")
+
+                else:
+                    messages.error(
+                        request,
+                        "Invalid password"
+                    )
+
+            except User.DoesNotExist:
+
+                messages.error(
+                    request,
+                    "User not found"
+                )
+
+        return render(
+            request,
+            "account/login.html"
+        )
+    
+
+    def logout_view(request):
+        logout(request)
+        return redirect("login")
+
+        

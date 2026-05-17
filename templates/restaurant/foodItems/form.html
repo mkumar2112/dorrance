@@ -1,0 +1,437 @@
+<div class="card border shadow-sm rounded-3">
+
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0" id="foodItemFormTitle">
+            <i class="bi bi-basket2 me-2"></i>
+            Create Food Item
+        </h5>
+
+        <button type="button" id="backToFoodItemListBtn" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i>
+            Back To List
+        </button>
+    </div>
+
+    <div class="card-body">
+
+        <form id="foodItemForm" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <input type="hidden" id="foodItemId">
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label">Category <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-grid"></i></span>
+                        <select id="foodItemCategory" class="form-select" required>
+                            <option value="">Select Category</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Item Name <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                        <input type="text" id="foodItemName" class="form-control" placeholder="Enter item name" required>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Price <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text">£</span>
+                        <input type="number" step="0.01" id="foodItemPrice" class="form-control" placeholder="Enter price" required>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Discounted Price</label>
+                    <div class="input-group">
+                        <span class="input-group-text">£</span>
+                        <input type="number" step="0.01" id="foodItemDiscountedPrice" class="form-control" placeholder="Enter discounted price">
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Preparation Time</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                        <input type="number" id="foodItemPreparationTime" class="form-control" placeholder="Time in minutes">
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Stock Quantity</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-box-seam"></i></span>
+                        <input type="number" id="foodItemStockQuantity" class="form-control" value="0" placeholder="Enter stock quantity">
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Unlimited Stock</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-infinity"></i></span>
+                        <select id="foodItemIsUnlimitedStock" class="form-select">
+                            <option value="false">No</option>
+                            <option value="true">Yes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Sort Order</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-sort-numeric-down"></i></span>
+                        <input type="number" id="foodItemSortOrder" class="form-control" value="0" placeholder="Enter sort order">
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Food Type</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-circle-fill"></i></span>
+                        <select id="foodItemIsVeg" class="form-select">
+                            <option value="true">Veg</option>
+                            <option value="false">Non Veg</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Spicy</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-fire"></i></span>
+                        <select id="foodItemIsSpicy" class="form-select">
+                            <option value="false">No</option>
+                            <option value="true">Yes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Available</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-check-circle"></i></span>
+                        <select id="foodItemIsAvailable" class="form-select">
+                            <option value="true">Available</option>
+                            <option value="false">Unavailable</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Featured</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-star"></i></span>
+                        <select id="foodItemIsFeatured" class="form-select">
+                            <option value="false">No</option>
+                            <option value="true">Yes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Active</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-toggle-on"></i></span>
+                        <select id="foodItemIsActive" class="form-select">
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Image</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-image"></i></span>
+                        <input type="file" id="foodItemImage" class="form-control" accept="image/*">
+                    </div>
+
+                    <div id="foodItemImagePreviewBox" class="mt-2 d-none">
+                        <img id="foodItemImagePreview" src="" class="img-thumbnail" style="max-height: 120px;">
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label">Description</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                        <textarea id="foodItemDescription" class="form-control" rows="3" placeholder="Enter item description"></textarea>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <button type="button" id="cancelFoodItemFormBtn" class="btn btn-light">
+                    Cancel
+                </button>
+
+                <button type="submit" id="saveFoodItemBtn" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i>
+                    Save Food Item
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+    const FOOD_CATEGORY_API_URL = "/api/food-categories/";
+
+    const foodItemForm = document.getElementById("foodItemForm");
+    const foodItemFormTitle = document.getElementById("foodItemFormTitle");
+
+    const foodItemId = document.getElementById("foodItemId");
+    const foodItemCategory = document.getElementById("foodItemCategory");
+    const foodItemName = document.getElementById("foodItemName");
+    const foodItemPrice = document.getElementById("foodItemPrice");
+    const foodItemDiscountedPrice = document.getElementById("foodItemDiscountedPrice");
+    const foodItemPreparationTime = document.getElementById("foodItemPreparationTime");
+    const foodItemStockQuantity = document.getElementById("foodItemStockQuantity");
+    const foodItemIsUnlimitedStock = document.getElementById("foodItemIsUnlimitedStock");
+    const foodItemSortOrder = document.getElementById("foodItemSortOrder");
+    const foodItemIsVeg = document.getElementById("foodItemIsVeg");
+    const foodItemIsSpicy = document.getElementById("foodItemIsSpicy");
+    const foodItemIsAvailable = document.getElementById("foodItemIsAvailable");
+    const foodItemIsFeatured = document.getElementById("foodItemIsFeatured");
+    const foodItemIsActive = document.getElementById("foodItemIsActive");
+    const foodItemImage = document.getElementById("foodItemImage");
+    const foodItemImagePreviewBox = document.getElementById("foodItemImagePreviewBox");
+    const foodItemImagePreview = document.getElementById("foodItemImagePreview");
+    const foodItemDescription = document.getElementById("foodItemDescription");
+
+    function getCSRFToken() {
+        const csrfInput = document.querySelector("[name=csrfmiddlewaretoken]");
+        return csrfInput ? csrfInput.value : "";
+    }
+
+    function showFoodItemImagePreview(url) {
+        if (url) {
+            foodItemImagePreview.src = url;
+            foodItemImagePreviewBox.classList.remove("d-none");
+        } else {
+            foodItemImagePreview.src = "";
+            foodItemImagePreviewBox.classList.add("d-none");
+        }
+    }
+
+    foodItemImage.addEventListener("change", function () {
+        const file = this.files[0];
+
+        if (file) {
+            showFoodItemImagePreview(URL.createObjectURL(file));
+        }
+    });
+
+    async function loadFoodItemCategories(selectedCategoryId = "") {
+        try {
+            const response = await fetch(FOOD_CATEGORY_API_URL);
+            const data = await response.json();
+
+            foodItemCategory.innerHTML = `<option value="">Select Category</option>`;
+
+            const categories = data.food_categories || data.results || data || [];
+
+            categories.forEach(function (category) {
+                if (category.is_active === false || category.is_deleted === true) {
+                    return;
+                }
+
+                const option = document.createElement("option");
+                option.value = category.id;
+                option.textContent = category.name;
+
+                if (String(category.id) === String(selectedCategoryId)) {
+                    option.selected = true;
+                }
+
+                foodItemCategory.appendChild(option);
+            });
+
+        } catch (error) {
+            console.error(error);
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Unable to load food categories."
+            });
+        }
+    }
+
+    function resetFoodItemForm() {
+        foodItemForm.reset();
+
+        foodItemId.value = "";
+        foodItemFormTitle.innerHTML = `<i class="bi bi-basket2 me-2"></i> Create Food Item`;
+
+        foodItemCategory.value = "";
+        foodItemPreparationTime.value = "";
+        foodItemStockQuantity.value = "0";
+        foodItemIsUnlimitedStock.value = "false";
+        foodItemSortOrder.value = "0";
+        foodItemIsVeg.value = "true";
+        foodItemIsSpicy.value = "false";
+        foodItemIsAvailable.value = "true";
+        foodItemIsFeatured.value = "false";
+        foodItemIsActive.value = "true";
+
+        showFoodItemImagePreview("");
+
+        loadFoodItemCategories();
+    }
+
+    async function editFoodItem(id) {
+        try {
+            const response = await fetch(`${FOOD_ITEM_API_URL}${id}/`);
+            const data = await response.json();
+
+            if (!data.status) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: data.message || "Unable to fetch food item."
+                });
+                return;
+            }
+
+            const item = data.food_item;
+
+            foodItemId.value = item.id;
+            foodItemFormTitle.innerHTML = `<i class="bi bi-pencil-square me-2"></i> Edit Food Item`;
+
+            foodItemName.value = item.name || "";
+            foodItemPrice.value = item.price || "";
+            foodItemDiscountedPrice.value = item.discounted_price || "";
+            foodItemPreparationTime.value = item.preparation_time || "";
+            foodItemStockQuantity.value = item.stock_quantity ?? 0;
+            foodItemIsUnlimitedStock.value = String(item.is_unlimited_stock);
+            foodItemSortOrder.value = item.sort_order ?? 0;
+            foodItemIsVeg.value = String(item.is_veg);
+            foodItemIsSpicy.value = String(item.is_spicy);
+            foodItemIsAvailable.value = String(item.is_available);
+            foodItemIsFeatured.value = String(item.is_featured);
+            foodItemIsActive.value = String(item.is_active);
+            foodItemDescription.value = item.description || "";
+
+            showFoodItemImagePreview(item.image_url);
+
+            await loadFoodItemCategories(item.category);
+
+            showFormSection();
+
+        } catch (error) {
+            console.error(error);
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Something went wrong while fetching food item."
+            });
+        }
+    }
+
+    foodItemForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const id = foodItemId.value;
+
+        const price = parseFloat(foodItemPrice.value || 0);
+        const discountedPrice = parseFloat(foodItemDiscountedPrice.value || 0);
+
+        if (foodItemDiscountedPrice.value && discountedPrice > price) {
+            Swal.fire({
+                icon: "warning",
+                title: "Invalid Price",
+                text: "Discounted price cannot be greater than price."
+            });
+            return;
+        }
+
+        const formData = new FormData();
+
+        formData.append("category", foodItemCategory.value);
+        formData.append("name", foodItemName.value);
+        formData.append("price", foodItemPrice.value);
+        formData.append("discounted_price", foodItemDiscountedPrice.value || "");
+        formData.append("preparation_time", foodItemPreparationTime.value || "");
+        formData.append("stock_quantity", foodItemStockQuantity.value || 0);
+        formData.append("is_unlimited_stock", foodItemIsUnlimitedStock.value);
+        formData.append("sort_order", foodItemSortOrder.value || 0);
+        formData.append("is_veg", foodItemIsVeg.value);
+        formData.append("is_spicy", foodItemIsSpicy.value);
+        formData.append("is_available", foodItemIsAvailable.value);
+        formData.append("is_featured", foodItemIsFeatured.value);
+        formData.append("is_active", foodItemIsActive.value);
+        formData.append("description", foodItemDescription.value || "");
+
+        if (foodItemImage.files.length > 0) {
+            formData.append("image", foodItemImage.files[0]);
+        }
+
+        const url = id ? `${FOOD_ITEM_API_URL}${id}/` : FOOD_ITEM_API_URL;
+        const method = id ? "PUT" : "POST";
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    "X-CSRFToken": getCSRFToken()
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.status) {
+                let errorMessage = data.message || "Unable to save food item.";
+
+                if (data.discounted_price) {
+                    errorMessage = data.discounted_price[0];
+                }
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: errorMessage
+                });
+
+                return;
+            }
+
+            Swal.fire({
+                icon: "success",
+                title: "Success",
+                text: data.message || "Food item saved successfully.",
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+            resetFoodItemForm();
+            showListSection();
+
+            if (typeof loadFoodItems === "function") {
+                loadFoodItems();
+            }
+
+        } catch (error) {
+            console.error(error);
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Something went wrong while saving food item."
+            });
+        }
+    });
+
+    loadFoodItemCategories();
+</script>

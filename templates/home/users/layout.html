@@ -1,0 +1,67 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="container-fluid py-3">
+
+    <!-- LIST SECTION -->
+    <div id="listSection">
+        {% include 'home/users/list.html' %}
+    </div>
+
+    <!-- FORM SECTION -->
+    <div id="formSection" style="display: none;">
+        {% include "home/users/form.html" %}
+    </div>
+
+</div>
+
+<script>
+    const listSection = document.getElementById("listSection");
+    const formSection = document.getElementById("formSection");
+
+    const showUserFormBtn = document.getElementById("showUserFormBtn");
+    const backToUserListBtn = document.getElementById("backToUserListBtn");
+    const cancelUserFormBtn = document.getElementById("cancelUserFormBtn");
+
+    const USER_API_URL = "/api/users/";
+
+    function showFormSection() {
+        listSection.style.display = "none";
+        formSection.style.display = "block";
+    }
+
+    function showListSection() {
+        formSection.style.display = "none";
+        listSection.style.display = "block";
+    }
+
+    if (showUserFormBtn) {
+        showUserFormBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+
+            if (typeof resetUserForm === "function") {
+                resetUserForm();
+            }
+
+            showFormSection();
+        });
+    }
+
+    if (backToUserListBtn) {
+        backToUserListBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+            showListSection();
+        });
+    }
+
+    if (cancelUserFormBtn) {
+        cancelUserFormBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+            showListSection();
+        });
+    }
+</script>
+
+{% endblock %}

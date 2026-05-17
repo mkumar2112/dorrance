@@ -1,0 +1,585 @@
+<div class="card border shadow-sm rounded-3">
+
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+
+        <div>
+            <h5 class="mb-0">
+                <i class="bi bi-basket2 me-2"></i>
+                Food Items
+            </h5>
+
+            <small class="text-muted">
+                Manage food items
+            </small>
+        </div>
+
+        <button
+            type="button"
+            class="btn btn-primary"
+            id="showFoodItemFormBtn"
+        >
+            <i class="bi bi-plus-circle me-1"></i>
+            Add Food Item
+        </button>
+
+    </div>
+
+    <div class="card-body">
+
+        <!-- FILTERS -->
+        <div class="row g-3 mb-4">
+
+            <!-- SEARCH -->
+            <div class="col-md-3">
+
+                <label class="form-label">
+                    Search
+                </label>
+
+                <div class="input-group">
+
+                    <span class="input-group-text">
+                        <i class="bi bi-search"></i>
+                    </span>
+
+                    <input
+                        type="text"
+                        id="foodItemSearch"
+                        class="form-control"
+                        placeholder="Search food item..."
+                    >
+
+                </div>
+
+            </div>
+
+            <!-- CATEGORY -->
+            <div class="col-md-3">
+
+                <label class="form-label">
+                    Category
+                </label>
+
+                <div class="input-group">
+
+                    <span class="input-group-text">
+                        <i class="bi bi-grid"></i>
+                    </span>
+
+                    <select
+                        id="foodItemCategoryFilter"
+                        class="form-select"
+                    >
+                        <option value="">
+                            All Categories
+                        </option>
+                    </select>
+
+                </div>
+
+            </div>
+
+            <!-- STATUS -->
+            <div class="col-md-2">
+
+                <label class="form-label">
+                    Status
+                </label>
+
+                <select
+                    id="foodItemStatusFilter"
+                    class="form-select"
+                >
+                    <option value="">
+                        All
+                    </option>
+
+                    <option value="true">
+                        Active
+                    </option>
+
+                    <option value="false">
+                        Inactive
+                    </option>
+
+                </select>
+
+            </div>
+
+            <!-- AVAILABLE -->
+            <div class="col-md-2">
+
+                <label class="form-label">
+                    Available
+                </label>
+
+                <select
+                    id="foodItemAvailableFilter"
+                    class="form-select"
+                >
+                    <option value="">
+                        All
+                    </option>
+
+                    <option value="true">
+                        Available
+                    </option>
+
+                    <option value="false">
+                        Unavailable
+                    </option>
+
+                </select>
+
+            </div>
+
+            <!-- VEG -->
+            <div class="col-md-2">
+
+                <label class="form-label">
+                    Food Type
+                </label>
+
+                <select
+                    id="foodItemVegFilter"
+                    class="form-select"
+                >
+                    <option value="">
+                        All
+                    </option>
+
+                    <option value="true">
+                        Veg
+                    </option>
+
+                    <option value="false">
+                        Non Veg
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover align-middle">
+
+                <thead class="table-light">
+
+                    <tr>
+
+                        <th width="80">
+                            Image
+                        </th>
+
+                        <th>
+                            Item
+                        </th>
+
+                        <th>
+                            Category
+                        </th>
+
+                        <th width="120">
+                            Price
+                        </th>
+
+                        <th width="120">
+                            Final Price
+                        </th>
+
+                        <th width="100">
+                            Type
+                        </th>
+
+                        <th width="120">
+                            Status
+                        </th>
+
+                        <th width="140">
+                            Available
+                        </th>
+
+                        <th width="130">
+                            Actions
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="foodItemTableBody">
+
+                    <tr>
+
+                        <td colspan="9" class="text-center text-muted py-4">
+                            Loading...
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    const foodItemTableBody = document.getElementById("foodItemTableBody");
+
+    const foodItemSearch = document.getElementById("foodItemSearch");
+
+    const foodItemCategoryFilter = document.getElementById("foodItemCategoryFilter");
+
+    const foodItemStatusFilter = document.getElementById("foodItemStatusFilter");
+
+    const foodItemAvailableFilter = document.getElementById("foodItemAvailableFilter");
+
+    const foodItemVegFilter = document.getElementById("foodItemVegFilter");
+
+    async function loadFoodItemCategories() {
+
+        try {
+
+            const response = await fetch("/api/food-categories/");
+
+            const data = await response.json();
+
+            const categories = Array.isArray(data)
+                ? data
+                : data.food_categories || [];
+
+            foodItemCategoryFilter.innerHTML = `
+                <option value="">
+                    All Categories
+                </option>
+            `;
+
+            categories.forEach(category => {
+
+                foodItemCategoryFilter.innerHTML += `
+                    <option value="${category.id}">
+                        ${category.name}
+                    </option>
+                `;
+            });
+
+        } catch (error) {
+
+            console.log(error);
+        }
+    }
+
+    function getFoodItemImage(imageUrl) {
+
+        if (imageUrl) {
+
+            return `
+                <img
+                    src="${imageUrl}"
+                    class="rounded border"
+                    style="width:60px;height:60px;object-fit:cover;"
+                >
+            `;
+        }
+
+        return `
+            <div
+                class="d-flex align-items-center justify-content-center border rounded bg-light"
+                style="width:60px;height:60px;"
+            >
+                <i class="bi bi-image text-muted"></i>
+            </div>
+        `;
+    }
+
+    function getStatusBadge(status) {
+
+        return status
+            ? `<span class="badge bg-success">Active</span>`
+            : `<span class="badge bg-danger">Inactive</span>`;
+    }
+
+    function getAvailableBadge(status) {
+
+        return status
+            ? `<span class="badge bg-primary">Available</span>`
+            : `<span class="badge bg-secondary">Unavailable</span>`;
+    }
+
+    function getFoodTypeBadge(isVeg) {
+
+        return isVeg
+            ? `<span class="badge bg-success">Veg</span>`
+            : `<span class="badge bg-danger">Non Veg</span>`;
+    }
+
+    function formatPrice(price) {
+
+        if (!price) {
+            return "£0";
+        }
+
+        return `£${parseFloat(price).toFixed(2)}`;
+    }
+
+    async function loadFoodItems() {
+
+        foodItemTableBody.innerHTML = `
+            <tr>
+                <td colspan="9" class="text-center text-muted py-4">
+                    Loading...
+                </td>
+            </tr>
+        `;
+
+        try {
+
+            const params = new URLSearchParams();
+
+            const search = foodItemSearch.value.trim();
+            const category = foodItemCategoryFilter.value;
+            const status = foodItemStatusFilter.value;
+            const available = foodItemAvailableFilter.value;
+            const veg = foodItemVegFilter.value;
+
+            if (search) {
+                params.append("search", search);
+            }
+
+            if (category) {
+                params.append("category_id", category);
+            }
+
+            if (status) {
+                params.append("is_active", status);
+            }
+
+            if (available) {
+                params.append("is_available", available);
+            }
+
+            if (veg) {
+                params.append("is_veg", veg);
+            }
+
+            const url = params.toString()
+                ? `${FOOD_ITEM_API_URL}?${params.toString()}`
+                : FOOD_ITEM_API_URL;
+
+            const response = await fetch(url);
+
+            const data = await response.json();
+
+            const items = Array.isArray(data)
+                ? data
+                : data.food_items || [];
+
+            if (!response.ok || !data.status) {
+
+                foodItemTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="text-center text-danger py-4">
+                            ${data.message || "Failed to load food items"}
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+            if (!items.length) {
+
+                foodItemTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            No food items found
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+            foodItemTableBody.innerHTML = "";
+
+            items.forEach(item => {
+
+                foodItemTableBody.innerHTML += `
+
+                    <tr>
+
+                        <td>
+                            ${getFoodItemImage(item.image_url)}
+                        </td>
+
+                        <td>
+
+                            <div class="fw-semibold">
+                                ${item.name || "-"}
+                            </div>
+
+                            <small class="text-muted">
+                                ${item.slug || ""}
+                            </small>
+
+                        </td>
+
+                        <td>
+                            ${item.category_name || "-"}
+                        </td>
+
+                        <td>
+                            ${formatPrice(item.price)}
+                        </td>
+
+                        <td>
+                            <div class="fw-semibold text-success">
+                                ${formatPrice(item.final_price)}
+                            </div>
+
+                            ${
+                                item.discounted_price
+                                ? `
+                                    <small class="text-muted text-decoration-line-through">
+                                        ${formatPrice(item.price)}
+                                    </small>
+                                `
+                                : ""
+                            }
+                        </td>
+
+                        <td>
+                            ${getFoodTypeBadge(item.is_veg)}
+                        </td>
+
+                        <td>
+                            ${getStatusBadge(item.is_active)}
+                        </td>
+
+                        <td>
+                            ${getAvailableBadge(item.is_available)}
+                        </td>
+
+                        <td>
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-warning"
+                                onclick="editFoodItem(${item.id})"
+                            >
+                                <i class="bi bi-pencil"></i>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-danger"
+                                onclick="deleteFoodItem(${item.id})"
+                            >
+                                <i class="bi bi-trash"></i>
+                            </button>
+
+                        </td>
+
+                    </tr>
+                `;
+            });
+
+        } catch (error) {
+
+            console.log(error);
+
+            foodItemTableBody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="text-center text-danger py-4">
+                        Failed to load food items
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    async function deleteFoodItem(id) {
+
+        const confirmDelete = confirm(
+            "Are you sure you want to delete this food item?"
+        );
+
+        if (!confirmDelete) {
+            return;
+        }
+
+        try {
+
+            const response = await fetch(
+                `${FOOD_ITEM_API_URL}${id}/`,
+                {
+                    method: "DELETE",
+                    headers: {
+                        "X-CSRFToken": getCSRFToken()
+                    }
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.status) {
+
+                alert(data.message || "Failed to delete food item.");
+
+                return;
+            }
+
+            loadFoodItems();
+
+        } catch (error) {
+
+            console.log(error);
+
+            alert("Something went wrong.");
+        }
+    }
+
+    let foodItemSearchTimeout;
+
+    foodItemSearch.addEventListener("keyup", function() {
+
+        clearTimeout(foodItemSearchTimeout);
+
+        foodItemSearchTimeout = setTimeout(() => {
+
+            loadFoodItems();
+
+        }, 400);
+    });
+
+    foodItemCategoryFilter.addEventListener("change", function() {
+        loadFoodItems();
+    });
+
+    foodItemStatusFilter.addEventListener("change", function() {
+        loadFoodItems();
+    });
+
+    foodItemAvailableFilter.addEventListener("change", function() {
+        loadFoodItems();
+    });
+
+    foodItemVegFilter.addEventListener("change", function() {
+        loadFoodItems();
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+
+        loadFoodItemCategories();
+
+        loadFoodItems();
+    });
+</script>

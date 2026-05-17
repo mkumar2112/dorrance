@@ -1,54 +1,97 @@
 {% extends "account/base_account.html" %}
 {% load static %}
 {% load i18n %}
-{% load account socialaccount %}
+
 {% block head_title %}
-        <title>Login | Minia - Minimal Admin & Dashboard Template</title>
+<title>Login</title>
 {% endblock %}
-{% load crispy_forms_tags %}
 
 {% block content %}
-                                    <div class="auth-content my-auto">
-                                        <div class="text-center">
-                                            <h5 class="mb-0">Welcome Back !</h5>
-                                            <p class="text-muted mt-2">Sign in to continue to Minia.</p>
-                                        </div>
-                                        <form class="mt-4 pt-2" method="POST" action="{% url 'account_login' %}">
-                                            {% csrf_token %}
-                                            {% for message in messages %}
-                                                    <div class="alert {{ message.tags }} mb-4" role="alert">
-                                                        <strong>{{ message }}</strong>
-                                                    </div>
-                                            {% endfor %} 
-                                                    {{ form|crispy }}
-                                                    <div class="flex-shrink-0 mt-4 text-center">
-                                                        <div class="">
-                                                            <a href="{% url 'account_reset_password' %}" class="text-muted"> <i class="mdi mdi-lock me-1"></i> Forgot password?</a>
-                                                        </div>
-                                                    </div>
-                                            <div class="mb-3 mt-4 text-center">
-                                                <button class="btn btn-primary w-100 waves-effect waves-light" type="submit">Log In</button>
-                                            </div>
-                                        </form>
 
-                                        <div class="mt-4 pt-2 text-center">
-                                                <div class="signin-other-title">
-                                                    <h5 class="font-size-14 mb-3 text-muted fw-medium">- Sign up using -</h5>
-                                                </div>
+<div class="auth-content my-auto">
 
-                                                <ul class="list-inline mb-0">
-                                                    <li class="list-inline-item">
-                                                        <a href="{% url 'social:begin' 'google-oauth2' %}"
-                                                            class="social-list-item bg-danger text-white border-danger">
-                                                            <i class="mdi mdi-google"></i>
-                                                        </a>
-                                                    </li>
-                                                                                           
-                                                </ul>
-                                            </div>
-                                        <div class="mt-5 text-center">
-                                            <p class="text-muted mb-0">Don't have an account ? <a href="{% url 'account_signup' %}"
-                                                    class="text-primary fw-semibold"> Signup now </a> </p>
-                                        </div>
-                                    </div>
-{% endblock  %}
+    <div class="text-center">
+        <h5 class="mb-0">Welcome Back !</h5>
+        <p class="text-muted mt-2">
+            Sign in to continue.
+        </p>
+    </div>
+
+    <form class="mt-4 pt-2" method="POST" action="{% url 'login' %}">
+        {% csrf_token %}
+
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} mb-4" role="alert">
+            <strong>{{ message }}</strong>
+        </div>
+        {% endfor %}
+
+        <!-- MOBILE NUMBER -->
+        <div class="mb-3">
+            <label class="form-label">
+                Mobile Number
+            </label>
+
+            <div class="input-group">
+
+                <span class="input-group-text">
+                    <i class="mdi mdi-phone-outline"></i>
+                </span>
+
+                <input
+                    type="text"
+                    class="form-control"
+                    name="mobile_number"
+                    placeholder="Enter mobile number"
+                    required
+                >
+
+            </div>
+        </div>
+
+        <!-- PASSWORD -->
+        <div class="mb-3">
+            <label class="form-label">
+                Password
+            </label>
+
+            <div class="input-group">
+
+                <span class="input-group-text">
+                    <i class="mdi mdi-lock-outline"></i>
+                </span>
+
+                <input
+                    type="password"
+                    class="form-control"
+                    name="password"
+                    placeholder="Enter password"
+                    required
+                >
+
+            </div>
+        </div>
+
+        <!-- FORGOT PASSWORD -->
+        <div class="flex-shrink-0 mt-2 text-end">
+            <a href="#" class="text-muted">
+                <i class="mdi mdi-lock me-1"></i>
+                Forgot password?
+            </a>
+        </div>
+
+        <!-- LOGIN BUTTON -->
+        <div class="mb-3 mt-4 text-center">
+            <button
+                class="btn btn-primary w-100 waves-effect waves-light"
+                type="submit"
+            >
+                Log In
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

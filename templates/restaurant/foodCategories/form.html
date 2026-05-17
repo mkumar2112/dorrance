@@ -1,0 +1,359 @@
+<div class="card border shadow-sm rounded-3">
+
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0" id="foodCategoryFormTitle">
+            <i class="bi bi-grid me-2"></i>
+            Create Food Category
+        </h5>
+
+        <button type="button" id="backToFoodCategoryListBtn" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i>
+            Back To List
+        </button>
+    </div>
+
+    <div class="card-body">
+
+        <form id="foodCategoryForm" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <input type="hidden" id="foodCategoryId">
+
+            <div class="row g-3">
+
+                <!-- CATEGORY NAME -->
+                <div class="col-md-6">
+                    <label class="form-label">
+                        Category Name <span class="text-danger">*</span>
+                    </label>
+
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-tag"></i>
+                        </span>
+
+                        <input
+                            type="text"
+                            id="foodCategoryName"
+                            class="form-control"
+                            placeholder="Enter category name"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <!-- SORT ORDER -->
+                <div class="col-md-6">
+                    <label class="form-label">Sort Order</label>
+
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-sort-numeric-down"></i>
+                        </span>
+
+                        <input
+                            type="number"
+                            id="foodCategorySortOrder"
+                            class="form-control"
+                            value="0"
+                            placeholder="Enter sort order"
+                        >
+                    </div>
+                </div>
+
+                <!-- STATUS -->
+                <div class="col-md-6">
+                    <label class="form-label">Status</label>
+
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-toggle-on"></i>
+                        </span>
+
+                        <select id="foodCategoryIsActive" class="form-select">
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- IMAGE -->
+                <div class="col-md-6">
+                    <label class="form-label">Category Image</label>
+
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-image"></i>
+                        </span>
+
+                        <input
+                            type="file"
+                            id="foodCategoryImage"
+                            class="form-control"
+                            accept="image/*"
+                        >
+                    </div>
+
+                    <div class="mt-2">
+                        <img
+                            id="foodCategoryImagePreview"
+                            src=""
+                            class="img-thumbnail d-none"
+                            style="max-height: 120px;"
+                        >
+                    </div>
+                </div>
+
+                <!-- DESCRIPTION -->
+                <div class="col-md-12">
+                    <label class="form-label">Description</label>
+
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-text-paragraph"></i>
+                        </span>
+
+                        <textarea
+                            id="foodCategoryDescription"
+                            class="form-control"
+                            rows="3"
+                            placeholder="Enter description"
+                        ></textarea>
+                    </div>
+                </div>
+
+                <!-- BUTTONS -->
+                <div class="col-12 mt-4">
+                    <button type="submit" class="btn btn-primary" id="foodCategorySubmitBtn">
+                        <i class="bi bi-save me-1"></i>
+                        Save Food Category
+                    </button>
+
+                    <button type="button" id="cancelFoodCategoryFormBtn" class="btn btn-outline-secondary">
+                        Cancel
+                    </button>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    function getCSRFToken() {
+        const csrfInput = document.querySelector("[name=csrfmiddlewaretoken]");
+
+        if (csrfInput) {
+            return csrfInput.value;
+        }
+
+        const cookies = document.cookie.split(";");
+
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+
+            if (cookie.startsWith("csrftoken=")) {
+                return decodeURIComponent(cookie.substring("csrftoken=".length));
+            }
+        }
+
+        return "";
+    }
+
+    const foodCategoryForm = document.getElementById("foodCategoryForm");
+    const foodCategoryId = document.getElementById("foodCategoryId");
+    const foodCategoryFormTitle = document.getElementById("foodCategoryFormTitle");
+    const foodCategorySubmitBtn = document.getElementById("foodCategorySubmitBtn");
+    const foodCategoryImagePreview = document.getElementById("foodCategoryImagePreview");
+
+    function resetFoodCategoryForm() {
+        foodCategoryForm.reset();
+
+        foodCategoryId.value = "";
+        foodCategoryImagePreview.src = "";
+        foodCategoryImagePreview.classList.add("d-none");
+
+        document.getElementById("foodCategorySortOrder").value = 0;
+        document.getElementById("foodCategoryIsActive").value = "true";
+
+        foodCategoryFormTitle.innerHTML = `
+            <i class="bi bi-grid me-2"></i>
+            Create Food Category
+        `;
+
+        foodCategorySubmitBtn.innerHTML = `
+            <i class="bi bi-save me-1"></i>
+            Save Food Category
+        `;
+    }
+
+    function setFoodCategoryFormData(category) {
+        foodCategoryId.value = category.id || "";
+
+        document.getElementById("foodCategoryName").value = category.name || "";
+        document.getElementById("foodCategoryDescription").value = category.description || "";
+        document.getElementById("foodCategorySortOrder").value = category.sort_order || 0;
+
+        document.getElementById("foodCategoryIsActive").value =
+            category.is_active ? "true" : "false";
+
+        if (category.image_url) {
+            foodCategoryImagePreview.src = category.image_url;
+            foodCategoryImagePreview.classList.remove("d-none");
+        } else {
+            foodCategoryImagePreview.src = "";
+            foodCategoryImagePreview.classList.add("d-none");
+        }
+
+        foodCategoryFormTitle.innerHTML = `
+            <i class="bi bi-pencil-square me-2"></i>
+            Update Food Category
+        `;
+
+        foodCategorySubmitBtn.innerHTML = `
+            <i class="bi bi-save me-1"></i>
+            Update Food Category
+        `;
+
+        showFormSection();
+    }
+
+    async function editFoodCategory(id) {
+        try {
+            const response = await fetch(`${FOOD_CATEGORY_API_URL}${id}/`, {
+                method: "GET",
+                headers: {
+                    "X-CSRFToken": getCSRFToken()
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.status) {
+                alert(data.message || "Failed to load food category.");
+                return;
+            }
+
+            setFoodCategoryFormData(data.food_category);
+
+        } catch (error) {
+            console.log(error);
+            alert("Failed to load food category.");
+        }
+    }
+
+    document.getElementById("foodCategoryImage").addEventListener("change", function(e) {
+        const file = e.target.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function(event) {
+            foodCategoryImagePreview.src = event.target.result;
+            foodCategoryImagePreview.classList.remove("d-none");
+        };
+
+        reader.readAsDataURL(file);
+    });
+
+    foodCategoryForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const id = foodCategoryId.value;
+
+        const formData = new FormData();
+
+        formData.append("name", document.getElementById("foodCategoryName").value.trim());
+        formData.append("description", document.getElementById("foodCategoryDescription").value.trim());
+        formData.append("sort_order", document.getElementById("foodCategorySortOrder").value || 0);
+        formData.append("is_active", document.getElementById("foodCategoryIsActive").value);
+
+        const imageFile = document.getElementById("foodCategoryImage").files[0];
+
+        if (imageFile) {
+            formData.append("image", imageFile);
+        }
+
+        const url = id
+            ? `${FOOD_CATEGORY_API_URL}${id}/`
+            : FOOD_CATEGORY_API_URL;
+
+        const method = id ? "PATCH" : "POST";
+
+        try {
+            foodCategorySubmitBtn.disabled = true;
+            foodCategorySubmitBtn.innerHTML = `
+                <span class="spinner-border spinner-border-sm me-1"></span>
+                Saving...
+            `;
+
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    "X-CSRFToken": getCSRFToken()
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.status) {
+                console.log(data);
+
+                let errorMessage = data.message || data.detail || "Failed to save food category.";
+
+                if (data.name) {
+                    errorMessage = data.name[0];
+                }
+
+                if (data.image) {
+                    errorMessage = data.image[0];
+                }
+
+                alert(errorMessage);
+                return;
+            }
+
+            alert(data.message || "Food category saved successfully.");
+
+            resetFoodCategoryForm();
+            showListSection();
+
+            if (typeof loadFoodCategories === "function") {
+                loadFoodCategories();
+            }
+
+        } catch (error) {
+            console.log(error);
+            alert("Something went wrong.");
+        } finally {
+            foodCategorySubmitBtn.disabled = false;
+
+            if (foodCategoryId.value) {
+                foodCategorySubmitBtn.innerHTML = `
+                    <i class="bi bi-save me-1"></i>
+                    Update Food Category
+                `;
+            } else {
+                foodCategorySubmitBtn.innerHTML = `
+                    <i class="bi bi-save me-1"></i>
+                    Save Food Category
+                `;
+            }
+        }
+    });
+
+    document.getElementById("backToFoodCategoryListBtn").addEventListener("click", function() {
+        resetFoodCategoryForm();
+        showListSection();
+    });
+
+    document.getElementById("cancelFoodCategoryFormBtn").addEventListener("click", function() {
+        resetFoodCategoryForm();
+        showListSection();
+    });
+</script>

@@ -1,0 +1,518 @@
+<div class="card border shadow-sm rounded-3">
+
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="bi bi-person-gear me-2"></i>
+            Organization Admins
+        </h5>
+
+        <button type="button" id="backToOrgAdminListBtn" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i>
+            Back To Organization List
+        </button>
+    </div>
+
+    <div class="card-body">
+
+        <!-- TOP ACTION -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">Admin List</h6>
+
+            <button type="button" id="showOrgAdminFormInnerBtn" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>
+                Add Org Admin
+            </button>
+        </div>
+
+        <!-- ADMIN FORM -->
+        <div id="orgAdminFormBox" class="border rounded-3 p-3 mb-4" style="display:none;">
+            <h6 class="mb-3" id="orgAdminFormTitle">
+                <i class="bi bi-person-plus me-1"></i>
+                Add Org Admin
+            </h6>
+
+            <form id="orgAdminForm">
+                {% csrf_token %}
+
+                <input type="hidden" id="orgAdminId">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            User <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-person"></i>
+                            </span>
+                            <select id="orgAdminUser" class="form-select" required>
+                                <option value="">Select User</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            Organization <span class="text-danger">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="bi bi-building"></i>
+                            </span>
+                            <select id="orgAdminOrganization" class="form-select" required>
+                                <option value="">Select Organization</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Primary Admin</label>
+                        <select id="orgAdminIsPrimary" class="form-select">
+                            <option value="false">No</option>
+                            <option value="true">Yes</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Status</label>
+                        <select id="orgAdminIsActive" class="form-select">
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Manage Users</label>
+                        <select id="orgAdminCanManageUsers" class="form-select">
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Manage Menu</label>
+                        <select id="orgAdminCanManageMenu" class="form-select">
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Manage Orders</label>
+                        <select id="orgAdminCanManageOrders" class="form-select">
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">View Reports</label>
+                        <select id="orgAdminCanViewReports" class="form-select">
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Manage Payments</label>
+                        <select id="orgAdminCanManagePayments" class="form-select">
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 mt-3">
+                        <button type="submit" id="orgAdminSubmitBtn" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i>
+                            Save Org Admin
+                        </button>
+
+                        <button type="button" id="cancelOrgAdminFormBtn" class="btn btn-outline-secondary">
+                            Cancel
+                        </button>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>User</th>
+                        <th>Organization</th>
+                        <th>Primary</th>
+                        <th>Users</th>
+                        <th>Menu</th>
+                        <th>Orders</th>
+                        <th>Reports</th>
+                        <th>Payments</th>
+                        <th>Status</th>
+                        <th width="120">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="orgAdminTableBody">
+                    <tr>
+                        <td colspan="11" class="text-center text-muted">
+                            Loading...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const ORG_ADMIN_API_URL = "/api/org-admins/";
+    const USER_API_URL = "/api/users/";
+    const ORGANIZATION_API_URL_FOR_ADMIN = "/api/organizations/";
+
+    const orgAdminFormBox = document.getElementById("orgAdminFormBox");
+    const orgAdminForm = document.getElementById("orgAdminForm");
+    const orgAdminId = document.getElementById("orgAdminId");
+    const orgAdminFormTitle = document.getElementById("orgAdminFormTitle");
+    const orgAdminSubmitBtn = document.getElementById("orgAdminSubmitBtn");
+    const orgAdminTableBody = document.getElementById("orgAdminTableBody");
+
+    const showOrgAdminFormInnerBtn = document.getElementById("showOrgAdminFormInnerBtn");
+
+    function boolValue(id) {
+        return document.getElementById(id).value === "true";
+    }
+
+    function yesNoBadge(value) {
+        return value
+            ? `<span class="badge bg-success">Yes</span>`
+            : `<span class="badge bg-secondary">No</span>`;
+    }
+
+    function statusBadge(value) {
+        return value
+            ? `<span class="badge bg-success">Active</span>`
+            : `<span class="badge bg-danger">Inactive</span>`;
+    }
+
+    function resetOrgAdminForm() {
+        orgAdminForm.reset();
+        orgAdminId.value = "";
+
+        document.getElementById("orgAdminIsPrimary").value = "false";
+        document.getElementById("orgAdminIsActive").value = "true";
+        document.getElementById("orgAdminCanManageUsers").value = "true";
+        document.getElementById("orgAdminCanManageMenu").value = "true";
+        document.getElementById("orgAdminCanManageOrders").value = "true";
+        document.getElementById("orgAdminCanViewReports").value = "true";
+        document.getElementById("orgAdminCanManagePayments").value = "true";
+
+        orgAdminFormTitle.innerHTML = `
+            <i class="bi bi-person-plus me-1"></i>
+            Add Org Admin
+        `;
+
+        orgAdminSubmitBtn.innerHTML = `
+            <i class="bi bi-save me-1"></i>
+            Save Org Admin
+        `;
+    }
+
+    function showOrgAdminFormBox() {
+        orgAdminFormBox.style.display = "block";
+    }
+
+    function hideOrgAdminFormBox() {
+        orgAdminFormBox.style.display = "none";
+    }
+
+    if (showOrgAdminFormInnerBtn) {
+        showOrgAdminFormInnerBtn.addEventListener("click", function () {
+            resetOrgAdminForm();
+            showOrgAdminFormBox();
+        });
+    }
+
+    if (document.getElementById("cancelOrgAdminFormBtn")) {
+        document.getElementById("cancelOrgAdminFormBtn").addEventListener("click", function () {
+            resetOrgAdminForm();
+            hideOrgAdminFormBox();
+        });
+    }
+
+    async function loadOrgAdminUsers() {
+        try {
+            const response = await fetch(USER_API_URL);
+            const data = await response.json();
+
+            const users = Array.isArray(data) ? data : data.results || data.data || [];
+            const userSelect = document.getElementById("orgAdminUser");
+
+            userSelect.innerHTML = `<option value="">Select User</option>`;
+
+            users.forEach(user => {
+                userSelect.innerHTML += `
+                    <option value="${user.id}">
+                        ${user.username || user.email || user.mobile_number || ("User #" + user.id)}
+                    </option>
+                `;
+            });
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async function loadOrgAdminOrganizations() {
+        try {
+            const response = await fetch(ORGANIZATION_API_URL_FOR_ADMIN);
+            const data = await response.json();
+
+            const organizations = Array.isArray(data) ? data : data.results || data.data || [];
+            const organizationSelect = document.getElementById("orgAdminOrganization");
+
+            organizationSelect.innerHTML = `<option value="">Select Organization</option>`;
+
+            organizations.forEach(org => {
+                organizationSelect.innerHTML += `
+                    <option value="${org.id}">
+                        ${org.name}
+                    </option>
+                `;
+            });
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async function loadOrgAdmins(organizationId = "") {
+
+        orgAdminTableBody.innerHTML = `
+            <tr>
+                <td colspan="11" class="text-center text-muted">
+                    Loading...
+                </td>
+            </tr>
+        `;
+
+        try {
+
+            let url = ORG_ADMIN_API_URL;
+
+            if (organizationId) {
+                url += `?organization_id=${organizationId}`;
+            }
+
+            const response = await fetch(url);
+
+            const data = await response.json();
+
+            const admins = Array.isArray(data)
+                ? data
+                : data.results || data.data || [];
+
+            if (!admins.length) {
+
+                orgAdminTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="11" class="text-center text-muted">
+                            No org admin found
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+            orgAdminTableBody.innerHTML = "";
+
+            admins.forEach((admin, index) => {
+
+                orgAdminTableBody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${admin.user_name || "-"}</td>
+                        <td>${admin.organization_name || "-"}</td>
+                        <td>${yesNoBadge(admin.is_primary)}</td>
+                        <td>${yesNoBadge(admin.can_manage_users)}</td>
+                        <td>${yesNoBadge(admin.can_manage_menu)}</td>
+                        <td>${yesNoBadge(admin.can_manage_orders)}</td>
+                        <td>${yesNoBadge(admin.can_view_reports)}</td>
+                        <td>${yesNoBadge(admin.can_manage_payments)}</td>
+                        <td>${statusBadge(admin.is_active)}</td>
+
+                        <td>
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-primary"
+                                onclick="editOrgAdmin(${admin.id})"
+                            >
+                                <i class="bi bi-pencil"></i>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-outline-danger"
+                                onclick="deleteOrgAdmin(${admin.id})"
+                            >
+                                <i class="bi bi-trash"></i>
+                            </button>
+
+                        </td>
+                    </tr>
+                `;
+            });
+
+        } catch (error) {
+
+            console.log(error);
+
+            orgAdminTableBody.innerHTML = `
+                <tr>
+                    <td colspan="11" class="text-center text-danger">
+                        Failed to load org admins
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    async function editOrgAdmin(id) {
+        try {
+            const response = await fetch(`${ORG_ADMIN_API_URL}${id}/`);
+
+            if (!response.ok) {
+                alert("Org admin not found");
+                return;
+            }
+
+            const admin = await response.json();
+
+            orgAdminId.value = admin.id || "";
+
+            document.getElementById("orgAdminUser").value = admin.user || "";
+            document.getElementById("orgAdminOrganization").value = admin.organization || "";
+            document.getElementById("orgAdminIsPrimary").value = admin.is_primary ? "true" : "false";
+            document.getElementById("orgAdminIsActive").value = admin.is_active ? "true" : "false";
+
+            document.getElementById("orgAdminCanManageUsers").value = admin.can_manage_users ? "true" : "false";
+            document.getElementById("orgAdminCanManageMenu").value = admin.can_manage_menu ? "true" : "false";
+            document.getElementById("orgAdminCanManageOrders").value = admin.can_manage_orders ? "true" : "false";
+            document.getElementById("orgAdminCanViewReports").value = admin.can_view_reports ? "true" : "false";
+            document.getElementById("orgAdminCanManagePayments").value = admin.can_manage_payments ? "true" : "false";
+
+            orgAdminFormTitle.innerHTML = `
+                <i class="bi bi-pencil-square me-1"></i>
+                Update Org Admin
+            `;
+
+            orgAdminSubmitBtn.innerHTML = `
+                <i class="bi bi-save me-1"></i>
+                Update Org Admin
+            `;
+
+            showOrgAdminFormBox();
+
+        } catch (error) {
+            console.log(error);
+            alert("Failed to load org admin.");
+        }
+    }
+
+    async function deleteOrgAdmin(id) {
+        if (!confirm("Are you sure you want to delete this org admin?")) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${ORG_ADMIN_API_URL}${id}/`, {
+                method: "DELETE",
+                headers: {
+                    "X-CSRFToken": getCSRFToken()
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.detail || data.message || "Failed to delete org admin.");
+                return;
+            }
+
+            loadOrgAdmins();
+
+        } catch (error) {
+            console.log(error);
+            alert("Something went wrong.");
+        }
+    }
+
+    orgAdminForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const id = orgAdminId.value;
+
+        const payload = {
+            user: document.getElementById("orgAdminUser").value,
+            organization: document.getElementById("orgAdminOrganization").value,
+            is_primary: boolValue("orgAdminIsPrimary"),
+            can_manage_users: boolValue("orgAdminCanManageUsers"),
+            can_manage_menu: boolValue("orgAdminCanManageMenu"),
+            can_manage_orders: boolValue("orgAdminCanManageOrders"),
+            can_view_reports: boolValue("orgAdminCanViewReports"),
+            can_manage_payments: boolValue("orgAdminCanManagePayments"),
+            is_active: boolValue("orgAdminIsActive")
+        };
+
+        const url = id ? `${ORG_ADMIN_API_URL}${id}/` : ORG_ADMIN_API_URL;
+        const method = id ? "PUT" : "POST";
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCSRFToken()
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.log(data);
+
+                if (data.non_field_errors) {
+                    alert(data.non_field_errors.join("\n"));
+                } else if (data.detail) {
+                    alert(data.detail);
+                } else if (typeof data === "object") {
+                    alert(JSON.stringify(data));
+                } else {
+                    alert("Failed to save org admin.");
+                }
+
+                return;
+            }
+
+            resetOrgAdminForm();
+            hideOrgAdminFormBox();
+            loadOrgAdmins();
+
+        } catch (error) {
+            console.log(error);
+            alert("Something went wrong.");
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        loadOrgAdminUsers();
+        loadOrgAdminOrganizations();
+        loadOrgAdmins();
+    });
+</script>

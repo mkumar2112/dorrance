@@ -22,15 +22,45 @@
                                     <img src="{% static 'images/logo-sm.svg' %}" alt="" height="24"> <span class="logo-txt">DORRANCE</span>
                                 </span>
                             </a>
+
+                            
                         </div>
 
                         <button type="button" class="btn btn-sm px-3 font-size-16 header-item" id="vertical-menu-btn">
                             <i class="fa fa-fw fa-bars"></i>
                         </button>
 
+                        <form class="app-search d-none d-lg-block">
+                            <div class="position-relative">
+
+                                <select
+                                    class="form-select pe-5"
+                                    id="organizationSelect"
+                                    onchange="changeOrganization(this.value)"
+                                >
+                                    {% for org in org_list %}
+                                        <option
+                                            value="{{ org.id }}"
+                                            {% if org.id|stringformat:"s" == selected_org|stringformat:"s" %}selected{% endif %}
+                                        >
+                                            {{ org.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <button
+                                    class="btn btn-primary position-absolute top-0 end-0 h-100"
+                                    type="button"
+                                >
+                                    <i class="bx bx-buildings align-middle"></i>
+                                </button>
+
+                            </div>
+                        </form>
+
                     </div>
 
                     <div class="d-flex">
+                        
 
                         <div class="dropdown d-none d-sm-inline-block">
                             <button type="button" class="btn header-item" id="mode-setting-btn">
@@ -151,7 +181,7 @@
                                 <a class="dropdown-item" href=""><i class="mdi mdi-lock text-muted font-size-16 align-middle me-1"></i> Change
                                     Password</a>
 
-                                <a class="dropdown-item" href=""><i class="mdi mdi-logout font-size-16 align-middle me-1"></i> Logout</a>
+                                <a class="dropdown-item" href="{% url "logout" %}"><i class="mdi mdi-logout font-size-16 align-middle me-1"></i> Logout</a>
                             </div>
                             {% endif %}
                         </div>
@@ -159,4 +189,28 @@
                     </div>
                 </div>
             </header>
+
+            <script>
+                function changeOrganization(orgId) {
+                    fetch("{% url 'change_organization' %}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": "{{ csrf_token }}"
+                        },
+                        body: JSON.stringify({
+                            organization_id: orgId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status) {
+                            window.location.reload();
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                    });
+                }
+            </script>
 {% endblock  %}

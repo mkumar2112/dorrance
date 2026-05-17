@@ -1,0 +1,155 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="container-fluid py-3">
+
+    <!-- LIST SECTION -->
+    <div id="listSection">
+        {% include 'restaurant/organizations/list.html' %}
+    </div>
+
+    <!-- ORGANIZATION FORM SECTION -->
+    <div id="organizationFormSection" style="display: none;">
+        {% include "restaurant/organizations/form.html" %}
+    </div>
+
+    <!-- ORG ADMIN SECTION -->
+    <div id="orgAdminSection" style="display: none;">
+        {% include "restaurant/organizations/org_admin_form.html" %}
+    </div>
+
+</div>
+
+<script>
+    const listSection = document.getElementById("listSection");
+    const organizationFormSection = document.getElementById("organizationFormSection");
+    const orgAdminSection = document.getElementById("orgAdminSection");
+
+    const showOrganizationFormBtn = document.getElementById("showOrganizationFormBtn");
+    const backToOrganizationListBtn = document.getElementById("backToOrganizationListBtn");
+    const cancelOrganizationFormBtn = document.getElementById("cancelOrganizationFormBtn");
+
+    const showOrgAdminFormBtn = document.getElementById("showOrgAdminFormBtn");
+    const backToOrgAdminListBtn = document.getElementById("backToOrgAdminListBtn");
+    const cancelOrgAdminFormBtn = document.getElementById("cancelOrgAdminFormBtn");
+
+    const ORGANIZATION_API_URL = "/api/organizations/";
+    const ORG_ADMIN_API_URL = "/api/org-admins/";
+
+    function hideAllSections() {
+        listSection.style.display = "none";
+        organizationFormSection.style.display = "none";
+        orgAdminSection.style.display = "none";
+    }
+
+    function showListSection() {
+        hideAllSections();
+        listSection.style.display = "block";
+    }
+
+    function showOrganizationFormSection() {
+        hideAllSections();
+        organizationFormSection.style.display = "block";
+    }
+
+    function showOrgAdminSection() {
+        hideAllSections();
+        orgAdminSection.style.display = "block";
+    }
+
+    if (showOrganizationFormBtn) {
+        showOrganizationFormBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+
+            if (typeof resetOrganizationForm === "function") {
+                resetOrganizationForm();
+            }
+
+            showOrganizationFormSection();
+        });
+    }
+
+    if (backToOrganizationListBtn) {
+        backToOrganizationListBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+            showListSection();
+        });
+    }
+
+    if (cancelOrganizationFormBtn) {
+        cancelOrganizationFormBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+            showListSection();
+        });
+    }
+
+    if (showOrgAdminFormBtn) {
+        showOrgAdminFormBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+
+            if (typeof resetOrgAdminForm === "function") {
+                resetOrgAdminForm();
+            }
+
+            showOrgAdminSection();
+        });
+    }
+
+    if (backToOrgAdminListBtn) {
+        backToOrgAdminListBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+            showListSection();
+        });
+    }
+
+    if (cancelOrgAdminFormBtn) {
+        cancelOrgAdminFormBtn.addEventListener("click", function(e) {
+            e.preventDefault();
+            showListSection();
+        });
+    }
+</script>
+
+<script>
+
+    let selectedOrganizationId = null;
+
+    function openOrgAdminSection(orgId, orgName) {
+
+        selectedOrganizationId = orgId;
+
+        if (typeof hideAllSections === "function") {
+            hideAllSections();
+        }
+
+        const orgAdminSection = document.getElementById("orgAdminSection");
+
+        if (orgAdminSection) {
+            orgAdminSection.style.display = "block";
+        }
+
+        const orgAdminOrganization = document.getElementById("orgAdminOrganization");
+
+        if (orgAdminOrganization) {
+            orgAdminOrganization.value = orgId;
+        }
+
+        const adminTitle = document.getElementById("orgAdminPageTitle");
+
+        if (adminTitle) {
+            adminTitle.innerHTML = `
+                <i class="bi bi-people me-2"></i>
+                Manage Admins - ${orgName}
+            `;
+        }
+
+        if (typeof loadOrgAdmins === "function") {
+            loadOrgAdmins(orgId);
+        }
+    }
+
+</script>
+
+{% endblock %}

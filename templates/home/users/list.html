@@ -1,0 +1,379 @@
+<!-- SEARCH CARD -->
+<div class="card border shadow-sm rounded-3 mb-3">
+    <div class="card-body">
+
+        <form id="userSearchForm">
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <label class="form-label">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-person"></i>
+                        </span>
+                        <input
+                            type="text"
+                            id="searchUsername"
+                            class="form-control"
+                            placeholder="Search by username"
+                        >
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-envelope"></i>
+                        </span>
+                        <input
+                            type="text"
+                            id="searchUserEmail"
+                            class="form-control"
+                            placeholder="Search by email"
+                        >
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Mobile Number</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-phone"></i>
+                        </span>
+                        <input
+                            type="text"
+                            id="searchUserMobile"
+                            class="form-control"
+                            placeholder="Search by mobile"
+                        >
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-toggle-on"></i>
+                        </span>
+
+                        <select id="searchUserStatus" class="form-select">
+                            <option value="">All</option>
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+
+                        <button
+                            class="btn btn-outline-secondary"
+                            type="button"
+                            id="resetUserSearchBtn"
+                        >
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+</div>
+
+
+<!-- USER LIST CARD -->
+<div class="card border shadow-sm rounded-3">
+
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+
+        <h5 class="mb-0">
+            <i class="bi bi-people me-2"></i>
+            Users
+        </h5>
+
+        <button
+            type="button"
+            id="showUserFormBtn"
+            class="btn btn-primary btn-sm"
+        >
+            <i class="bi bi-plus-circle"></i>
+            Add User
+        </button>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Mobile</th>
+                        <th>Superuser</th>
+                        <th>Status</th>
+                        <th width="160">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="userTableBody">
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            Loading users...
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+    window.USER_API_URL = window.USER_API_URL || "/api/users/";
+
+    const userTableBody = document.getElementById("userTableBody");
+
+    const userSearchForm = document.getElementById("userSearchForm");
+
+    const searchUsername = document.getElementById("searchUsername");
+    const searchUserEmail = document.getElementById("searchUserEmail");
+    const searchUserMobile = document.getElementById("searchUserMobile");
+    const searchUserStatus = document.getElementById("searchUserStatus");
+
+    const resetUserSearchBtn = document.getElementById("resetUserSearchBtn");
+
+
+    function getCSRFToken() {
+        const csrfInput = document.querySelector("[name=csrfmiddlewaretoken]");
+
+        if (csrfInput) {
+            return csrfInput.value;
+        }
+
+        const name = "csrftoken";
+        const cookies = document.cookie.split(";");
+
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+
+            if (cookie.startsWith(name + "=")) {
+                return decodeURIComponent(cookie.substring(name.length + 1));
+            }
+        }
+
+        return "";
+    }
+
+
+    function escapeHtml(value) {
+        if (value === null || value === undefined) {
+            return "";
+        }
+
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+
+    async function loadUsers() {
+        userTableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-muted py-4">
+                    Loading users...
+                </td>
+            </tr>
+        `;
+
+        try {
+            const params = new URLSearchParams();
+
+            const username = searchUsername.value.trim();
+            const email = searchUserEmail.value.trim();
+            const mobile = searchUserMobile.value.trim();
+            const isActive = searchUserStatus.value;
+
+            if (username) {
+                params.append("username", username);
+            }
+
+            if (email) {
+                params.append("email", email);
+            }
+
+            if (mobile) {
+                params.append("mobile_number", mobile);
+            }
+
+            if (isActive !== "") {
+                params.append("is_active", isActive);
+            }
+
+            const response = await fetch(`${window.USER_API_URL}?${params.toString()}`, {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data?.message || data?.detail || "Failed to load users");
+            }
+
+            const users = data.results || data;
+
+            if (!Array.isArray(users) || !users.length) {
+                userTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            No users found.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = "";
+
+            users.forEach(function(user) {
+                const fullName = `${user.first_name || ""} ${user.last_name || ""}`.trim();
+
+                html += `
+                    <tr>
+                        <td>${user.id}</td>
+
+                        <td>
+                            <strong>${escapeHtml(fullName || user.username || "-")}</strong>
+                            <div class="small text-muted">
+                                ${escapeHtml(user.username || "")}
+                            </div>
+                        </td>
+
+                        <td>${escapeHtml(user.email || "-")}</td>
+
+                        <td>${escapeHtml(user.mobile_number || user.phone || "-")}</td>
+
+                        <td>
+                            ${
+                                user.is_superuser
+                                ? `<span class="badge bg-warning text-dark">Yes</span>`
+                                : `<span class="badge bg-secondary">No</span>`
+                            }
+                        </td>
+
+                        <td>
+                            ${
+                                user.is_active
+                                ? `<span class="badge bg-success">Active</span>`
+                                : `<span class="badge bg-danger">Inactive</span>`
+                            }
+                        </td>
+
+                        <td>
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-warning"
+                                onclick="editUser(${user.id})"
+                            >
+                                <i class="bi bi-pencil"></i>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-danger"
+                                onclick="deleteUser(${user.id})"
+                            >
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            userTableBody.innerHTML = html;
+
+        } catch (error) {
+            userTableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-danger py-4">
+                        ${escapeHtml(error.message || "Failed to load users.")}
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+
+    async function deleteUser(id) {
+        const confirmDelete = confirm("Are you sure you want to delete this user?");
+
+        if (!confirmDelete) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${window.USER_API_URL}${id}/`, {
+                method: "DELETE",
+                headers: {
+                    "X-CSRFToken": getCSRFToken(),
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            let data = {};
+
+            try {
+                data = await response.json();
+            } catch (error) {
+                data = {};
+            }
+
+            if (!response.ok) {
+                throw new Error(data?.message || data?.detail || "Delete failed");
+            }
+
+            loadUsers();
+
+        } catch (error) {
+            alert(error.message || "Failed to delete user.");
+        }
+    }
+
+
+    userSearchForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        loadUsers();
+    });
+
+
+    resetUserSearchBtn.addEventListener("click", function() {
+        searchUsername.value = "";
+        searchUserEmail.value = "";
+        searchUserMobile.value = "";
+        searchUserStatus.value = "";
+
+        loadUsers();
+    });
+
+
+    document.addEventListener("DOMContentLoaded", function() {
+        loadUsers();
+    });
+</script>

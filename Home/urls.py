@@ -4,12 +4,15 @@ from .views import *
 urlpatterns = [
 
     path("roles/", RoleView.role_list, name="role_list"),
+    path("users/", UserView.user_list, name="user_list"),
 
-    path("roles/create/", RoleView.role_list, name="role_create"),
+]
 
-    # path("roles/<int:pk>/update/", RoleView.role_update, name="role_update"),
 
-    # path("roles/<int:pk>/delete/", RoleView.role_delete, name="role_delete"),
+urlpatterns += [
+
+    path("login/", AuthView.login, name="login"),
+    path("logout/", AuthView.logout_view, name="logout"),
 
 ]
 

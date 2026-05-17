@@ -3,21 +3,31 @@ from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 import uuid
 from django.utils.text import slugify
-
+from .managers import UserManager
 
 
 PERMISSION_CHOICES = (
     ("dashboard_view", "Dashboard View", "Can view dashboard"),
 
-    ("organization_view", "Organization View", "Can view organizations"),
-    ("organization_create", "Organization Create", "Can create organization"),
-    ("organization_update", "Organization Update", "Can update organization"),
-    ("organization_delete", "Organization Delete", "Can delete organization"),
+    ("food_category_view", "Food Category View", "Can view food categories"),
+    ("food_category_create", "Food Category Create", "Can create food categories"),
+    ("food_category_update", "Food Category Update", "Can update food categories"),
+    ("food_category_delete", "Food Category Delete", "Can delete food categories"),
 
-    ("food_view", "Food View", "Can view food items"),
-    ("food_create", "Food Create", "Can create food items"),
-    ("food_update", "Food Update", "Can update food items"),
-    ("food_delete", "Food Delete", "Can delete food items"),
+    ("food_item_view", "Food Item View", "Can view food items"),
+    ("food_item_create", "Food Item Create", "Can create food items"),
+    ("food_item_update", "Food Item Update", "Can update food items"),
+    ("food_item_delete", "Food Item Delete", "Can delete food items"),
+
+    ("orders", "Orders", "Can view orders"),
+    ("order_create", "Order Create", "Can create orders"),
+    ("order_update", "Order Update", "Can update orders"),
+    ("order_delete", "Order Delete", "Can delete orders"),
+
+    ("feedbacks_view", "Feedbacks View", "Can view feedbacks"),
+    ("feedbacks_create", "Feedbacks Create", "Can create feedbacks"),
+    ("feedbacks_update", "Feedbacks Update", "Can update feedbacks"),
+    ("feedbacks_delete", "Feedbacks Delete", "Can delete feedbacks"),
 
     ("discount_view", "Discount View", "Can view discounts"),
     ("discount_create", "Discount Create", "Can create discounts"),
@@ -98,6 +108,7 @@ class User(AbstractUser):
         related_name="users"
     )
 
+
     is_mobile_verified = models.BooleanField(default=False)
     is_email_verified = models.BooleanField(default=False)
 
@@ -133,6 +144,15 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.mobile_number
+    
+    objects = UserManager()
+
+
+    def save(self, *args, **kwargs):
+        if self.mobile_number:
+            self.username = self.mobile_number
+        super().save(*args, **kwargs)
+
 
     def has_role_permission(self, permission_slug):
         if self.is_superuser:

@@ -1,0 +1,349 @@
+<div class="card border shadow-sm rounded-3">
+
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0" id="userFormTitle">
+            <i class="bi bi-person-plus me-2"></i>
+            Create User
+        </h5>
+
+        <button type="button" id="backToUserListBtn" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i>
+            Back To List
+        </button>
+    </div>
+
+    <div class="card-body">
+
+        <form id="userForm">
+            {% csrf_token %}
+
+            <input type="hidden" id="userId" value="">
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label">Username <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-person"></i>
+                        </span>
+                        <input type="text" id="username" class="form-control" placeholder="Enter username" required>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Email <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-envelope"></i>
+                        </span>
+                        <input type="email" id="userEmail" class="form-control" placeholder="Enter email address" required>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">First Name</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-person-vcard"></i>
+                        </span>
+                        <input type="text" id="userFirstName" class="form-control" placeholder="Enter first name">
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Last Name</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-person-vcard-fill"></i>
+                        </span>
+                        <input type="text" id="userLastName" class="form-control" placeholder="Enter last name">
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Mobile Number</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-phone"></i>
+                        </span>
+                        <input type="text" id="userMobileNumber" class="form-control" placeholder="Enter mobile number">
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Role</label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-person-badge"></i>
+                        </span>
+                        <select id="userRole" class="form-select">
+                            <option value="">Select Role</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">
+                        Password
+                        <span class="text-danger create-password-required">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-lock"></i>
+                        </span>
+                        <input type="password" id="userPassword" class="form-control" placeholder="Enter password">
+                    </div>
+                    <small class="text-muted">
+                        Leave blank while updating if you do not want to change password.
+                    </small>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Superuser</label>
+                    <select id="userIsSuperuser" class="form-select">
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Status</label>
+                    <select id="userIsActive" class="form-select">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+
+                <div class="col-12 mt-4">
+                    <button type="submit" class="btn btn-primary" id="userSubmitBtn">
+                        <i class="bi bi-save me-1"></i>
+                        Save User
+                    </button>
+
+                    <button type="button" id="cancelUserFormBtn" class="btn btn-outline-secondary">
+                        Cancel
+                    </button>
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    const userForm = document.getElementById("userForm");
+    const userId = document.getElementById("userId");
+
+    const userFormTitle = document.getElementById("userFormTitle");
+    const userSubmitBtn = document.getElementById("userSubmitBtn");
+
+    const username = document.getElementById("username");
+    const userEmail = document.getElementById("userEmail");
+    const userFirstName = document.getElementById("userFirstName");
+    const userLastName = document.getElementById("userLastName");
+    const userMobileNumber = document.getElementById("userMobileNumber");
+    const userRole = document.getElementById("userRole");
+    const userPassword = document.getElementById("userPassword");
+    const userIsSuperuser = document.getElementById("userIsSuperuser");
+    const userIsActive = document.getElementById("userIsActive");
+
+    function getCSRFToken() {
+        const csrfInput = document.querySelector("[name=csrfmiddlewaretoken]");
+
+        if (csrfInput) {
+            return csrfInput.value;
+        }
+
+        const name = "csrftoken";
+        const cookies = document.cookie.split(";");
+
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+
+            if (cookie.startsWith(name + "=")) {
+                return decodeURIComponent(cookie.substring(name.length + 1));
+            }
+        }
+
+        return "";
+    }
+
+    async function loadRoles(selectedRoleId = "") {
+        try {
+            userRole.innerHTML = `<option value="">Loading roles...</option>`;
+
+            const response = await fetch('/api/roles/', {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data?.message || data?.detail || "Failed to load roles");
+            }
+
+            const roles = data?.roles || data?.results || data || [];
+
+            userRole.innerHTML = `<option value="">Select Role</option>`;
+
+            roles.forEach(role => {
+                const option = document.createElement("option");
+
+                option.value = role.id;
+                option.textContent = role.display_name || role.name || role.title || `Role ${role.id}`;
+
+                if (String(selectedRoleId) === String(role.id)) {
+                    option.selected = true;
+                }
+
+                userRole.appendChild(option);
+            });
+
+        } catch (error) {
+            userRole.innerHTML = `<option value="">Failed to load roles</option>`;
+            console.error(error);
+        }
+    }
+
+    function resetUserForm() {
+        userId.value = "";
+        userForm.reset();
+
+        userRole.value = "";
+        userIsActive.value = "true";
+        userIsSuperuser.value = "false";
+
+        userPassword.required = true;
+
+        userFormTitle.innerHTML = `<i class="bi bi-person-plus me-2"></i> Create User`;
+
+        userSubmitBtn.innerHTML = `<i class="bi bi-save me-1"></i> Save User`;
+    }
+
+    async function setUserFormData(user) {
+        userId.value = user.id || "";
+
+        username.value = user.username || "";
+        userEmail.value = user.email || "";
+
+        userFirstName.value =
+            user.first_name ||
+            user.profile?.first_name ||
+            "";
+
+        userLastName.value =
+            user.last_name ||
+            user.profile?.last_name ||
+            "";
+
+        userMobileNumber.value = user.mobile_number || user.phone || "";
+
+        const roleId =
+            user.role ||
+            user.role_id ||
+            user.role?.id ||
+            "";
+
+        await loadRoles(roleId);
+
+        userPassword.value = "";
+        userPassword.required = false;
+
+        userIsSuperuser.value = user.is_superuser ? "true" : "false";
+        userIsActive.value = user.is_active ? "true" : "false";
+
+        userFormTitle.innerHTML = `<i class="bi bi-pencil-square me-2"></i> Update User`;
+
+        userSubmitBtn.innerHTML = `<i class="bi bi-save me-1"></i> Update User`;
+
+        showFormSection();
+    }
+
+    async function editUser(id) {
+        try {
+            const response = await fetch(`${window.USER_API_URL}${id}/`, {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data?.message || data?.detail || "User not found");
+            }
+
+            const user = data?.user || data;
+
+            await setUserFormData(user);
+
+        } catch (error) {
+            alert(error.message || "Failed to load user data.");
+        }
+    }
+
+    userForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const id = userId.value;
+
+        const payload = {
+            username: username.value.trim(),
+            email: userEmail.value.trim(),
+            first_name: userFirstName.value.trim(),
+            last_name: userLastName.value.trim(),
+            mobile_number: userMobileNumber.value.trim(),
+            role: userRole.value || null,
+            is_superuser: userIsSuperuser.value === "true",
+            is_active: userIsActive.value === "true"
+        };
+
+        if (userPassword.value.trim()) {
+            payload.password = userPassword.value.trim();
+        }
+
+        if (!id && !payload.password) {
+            alert("Password is required for new user.");
+            return;
+        }
+
+        const url = id ? `${window.USER_API_URL}${id}/` : window.USER_API_URL;
+        const method = id ? "PUT" : "POST";
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCSRFToken(),
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data?.message || data?.detail || "Failed to save user.");
+                return;
+            }
+
+            resetUserForm();
+            showListSection();
+            loadUsers();
+
+        } catch (error) {
+            alert(error.message || "Something went wrong.");
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        loadRoles();
+    });
+</script>
