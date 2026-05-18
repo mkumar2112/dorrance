@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
-from .get_env_data import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, TIMEZONE, CELERY_HOUR, CELERY_MINUTE, AWS_DATA, ALLOWED_DOMAIN, Debug, CSRF_ORIGINS, MAIL_HOST, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD, MAIL_ENCRYPTION_SSL
+from .get_env_data import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, TIMEZONE, CELERY_HOUR, CELERY_MINUTE, AWS_DATA, ALLOWED_DOMAIN, Debug, CSRF_ORIGINS, MAIL_HOST, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD, MAIL_ENCRYPTION_SSL, DB_ENGINE
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -80,32 +80,36 @@ WSGI_APPLICATION = 'dorrance.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 
-POSTGRES_READY = (
-    DB_NAME is not None
-    and DB_PASSWORD is not None
-    and DB_USER is not None
-    and DB_HOST is not None
-    and DB_PORT is not None
-)
 
+DATABASES = {}
 
-if POSTGRES_READY:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': DB_NAME,        # Your database name
-            'USER': DB_USER,      # Your database user
-            'PASSWORD': DB_PASSWORD,     # Your password
-            'HOST': DB_HOST,          # Or IP if using remote DB
-            'PORT': DB_PORT,               # Default PostgreSQL port
-        }
+if DB_ENGINE == "postgresql":
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": DB_NAME,
+        "USER": DB_USER,
+        "PASSWORD": DB_PASSWORD,
+        "HOST": DB_HOST,
+        "PORT": DB_PORT,
     }
+
+elif DB_ENGINE == "mysql":
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": DB_NAME,
+        "USER": DB_USER,
+        "PASSWORD": DB_PASSWORD,
+        "HOST": DB_HOST,
+        "PORT": DB_PORT,
+        "OPTIONS": {
+            "charset": "utf8mb4",
+        },
+    }
+
 else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
+    DATABASES["default"] = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
     }
 
 
