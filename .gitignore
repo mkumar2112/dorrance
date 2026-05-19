@@ -36,7 +36,6 @@ db.sqlite3
 
 # Django static & media files
 staticfiles/
-static/
 media/
 
 # Ignore compiled translations
