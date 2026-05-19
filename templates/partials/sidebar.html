@@ -21,7 +21,7 @@
                                 </a>
                             </li>
 
-                            {% comment %} {{request.user.role.permissions}} {% endcomment %}
+                            {% comment %} {{user.role.permissions}} {% endcomment %}
 
                             <li>
                                 <a href="javascript: void(0);" class="has-arrow">
@@ -29,63 +29,63 @@
                                     <span data-key="t-apps">Resturant Management</span>
                                 </a>
                                 <ul class="sub-menu" aria-expanded="false">
-                                    {% if 'orders' in request.user.role.permissions or request.user.is_superuser %}
+                                    {% if 'orders' in user.role.permissions or user.is_superuser %}
                                         <li>
                                             <a href="{% url 'role_list' %}">
                                                 <span data-key="t-calendar">Orders</span>
                                             </a>
                                         </li>
                                     {% endif %}
-                                    {% if 'dine_in_booking' in request.user.role.permissions or request.user.is_superuser %}
+                                    {% if 'dine_in_booking' in user.role.permissions or user.is_superuser %}
                                         <li>
                                             <a href="{% url 'role_list' %}">
                                                 <span data-key="t-calendar">Dine In Bookings</span>
                                             </a>
                                         </li>
                                     {% endif %}
-                                    {% if 'payments' in request.user.role.permissions or request.user.is_superuser %}
+                                    {% if 'payments' in user.role.permissions or user.is_superuser %}
                                         <li>
                                             <a href="{% url 'role_list' %}">
                                                 <span data-key="t-calendar">Payments</span>
                                             </a>
                                         </li>
                                     {% endif %}
-                                    {% if 'feedbacks_view' in request.user.role.permissions or request.user.is_superuser %}
+                                    {% if 'feedbacks_view' in user.role.permissions or user.is_superuser %}
                                         <li>
                                             <a href="{% url 'role_list' %}">
                                                 <span data-key="t-calendar">Feedbacks</span>
                                             </a>
                                         </li>
                                     {% endif %}
-                                    {% if 'food_item_view' in request.user.role.permissions or request.user.is_superuser %}
+                                    {% if 'food_item_view' in user.role.permissions or user.is_superuser %}
                                         <li>
                                             <a href="{% url 'food_items_list' %}">
                                                 <span data-key="t-calendar">Food Items</span>
                                             </a>
                                         </li>
                                     {% endif %}
-                                    {% if 'food_category_view' in request.user.role.permissions or request.user.is_superuser %}
+                                    {% if 'food_category_view' in user.role.permissions or user.is_superuser %}
                                         <li>
                                             <a href="{% url 'food_category_list' %}">
                                                 <span data-key="t-calendar">Food Categories</span>
                                             </a>
                                         </li>
                                     {% endif %}
-                                    {% if 'feedbacks_view' in request.user.role.permissions or request.user.is_superuser %}
+                                    {% if 'feedbacks_view' in user.role.permissions or user.is_superuser %}
                                         <li>
                                             <a href="{% url 'role_list' %}">
                                                 <span data-key="t-calendar">Feedbacks</span>
                                             </a>
                                         </li>
                                     {% endif %}
-                                    {% if 'rewards_view' in request.user.role.permissions or request.user.is_superuser %}
+                                    {% if 'rewards_view' in user.role.permissions or user.is_superuser %}
                                         <li>
                                             <a href="{% url 'role_list' %}">
                                                 <span data-key="t-calendar">Rewards</span>
                                             </a>
                                         </li>
                                     {% endif %}
-                                    {% if 'referrals_view' in request.user.role.permissions or request.user.is_superuser %}
+                                    {% if 'referrals_view' in user.role.permissions or user.is_superuser %}
                                         <li>
                                             <a href="{% url 'role_list' %}">
                                                 <span data-key="t-calendar">Referrals</span>
