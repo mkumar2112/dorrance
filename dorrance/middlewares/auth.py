@@ -1,5 +1,6 @@
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.http import JsonResponse
 
 
 class LoginRequiredMiddleware:
@@ -9,25 +10,31 @@ class LoginRequiredMiddleware:
 
     def __call__(self, request):
 
-        # URLs that don't require login
         exempt_urls = [
             reverse("login"),
             reverse("logout"),
+            "/api/login/",
+            "/api/register/",
+            "/api/token/refresh/",
+            "/admin/login/",
         ]
 
-        # Allow static/media files
-        if (
-            request.path.startswith("/static/")
-            or request.path.startswith("/media/")
-        ):
+        exempt_prefixes = [
+            "/static/",
+            "/media/",
+            "/admin/",
+            "/api/",
+        ]
+
+        for prefix in exempt_prefixes:
+            if request.path.startswith(prefix):
+                return self.get_response(request)
+
+        if request.path in exempt_urls:
             return self.get_response(request)
 
-        # If user not logged in
         if not request.user.is_authenticated:
-
-            # Allow exempt URLs
-            if request.path not in exempt_urls:
-                return redirect("login")
+            return redirect("login")
 
         response = self.get_response(request)
 

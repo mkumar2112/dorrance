@@ -6,6 +6,16 @@ from ...models import User
 from .serializers import UserSerializer
 
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.utils import timezone
+
+from .serializers import LoginSerializer, RegisterSerializer
+
+
+
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
@@ -98,3 +108,92 @@ class UserViewSet(viewsets.ModelViewSet):
             "permission": permission_slug,
             "has_permission": user.has_role_permission(permission_slug)
         })
+
+
+
+
+class LoginAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+
+        if serializer.is_valid():
+            user = serializer.validated_data["user"]
+
+            refresh = RefreshToken.for_user(user)
+
+            user.last_login = timezone.now()
+            user.last_login_ip = self.get_client_ip(request)
+            user.last_login_device = request.META.get("HTTP_USER_AGENT", "")
+            user.save(update_fields=[
+                "last_login",
+                "last_login_ip",
+                "last_login_device"
+            ])
+
+            return Response({
+                "success": True,
+                "message": "Login successful",
+                "user": {
+                    "id": user.id,
+                    "uuid": str(user.uuid),
+                    "mobile_number": user.mobile_number,
+                    "email": user.email,
+                    "username": user.username,
+                    "role": user.role.name if user.role else None,
+                    "is_superuser": user.is_superuser,
+                },
+                "tokens": {
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                }
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            "success": False,
+            "message": "Login failed",
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_client_ip(self, request):
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+        if x_forwarded_for:
+            return x_forwarded_for.split(",")[0]
+        return request.META.get("REMOTE_ADDR")
+    
+class RegisterAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+
+        if serializer.is_valid():
+            user = serializer.save()
+
+            refresh = RefreshToken.for_user(user)
+
+            return Response({
+                "success": True,
+                "message": "User registered successfully",
+                "user": {
+                    "id": user.id,
+                    "uuid": str(user.uuid),
+                    "mobile_number": user.mobile_number,
+                    "email": user.email,
+                    "username": user.username,
+                    "role": user.role.slug if user.role else None,
+                },
+                "tokens": {
+                    "access": str(refresh.access_token),
+                    "refresh": str(refresh),
+                }
+            }, status=status.HTTP_201_CREATED)
+
+        return Response({
+            "success": False,
+            "message": "Registration failed",
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+

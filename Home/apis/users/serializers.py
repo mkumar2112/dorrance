@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
-from ...models import User
+from ...models import User, Role
+from django.contrib.auth import authenticate
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -83,3 +84,88 @@ class UserSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+    
+
+
+
+class LoginSerializer(serializers.Serializer):
+    mobile_number = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        mobile_number = attrs.get("mobile_number")
+        password = attrs.get("password")
+
+        user = authenticate(
+            username=mobile_number,
+            password=password
+        )
+
+        if not user:
+            raise serializers.ValidationError("Invalid mobile number or password")
+
+        if user.is_blocked:
+            raise serializers.ValidationError("Your account is blocked")
+
+        if user.is_deleted:
+            raise serializers.ValidationError("Your account is deleted")
+
+        if not user.is_active:
+            raise serializers.ValidationError("Your account is inactive")
+
+        attrs["user"] = user
+        return attrs
+
+
+
+
+
+
+
+
+class RegisterSerializer(serializers.Serializer):
+    mobile_number = serializers.CharField(max_length=15)
+    password = serializers.CharField(write_only=True)
+    email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
+
+    def validate_mobile_number(self, value):
+        if User.objects.filter(mobile_number=value).exists():
+            raise serializers.ValidationError("Mobile number already exists")
+        return value
+
+    def validate_email(self, value):
+        if value and User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email already exists")
+        return value
+
+    def create(self, validated_data):
+        role, created = Role.objects.get_or_create(
+            slug="user",
+            defaults={
+                "name": "User",
+                "display_name": "User",
+                "description": "Default user role",
+                "permissions": [],
+                "is_default": True,
+                "is_active": True,
+                "is_deleted": False,
+            }
+        )
+
+        user = User.objects.create(
+            mobile_number=validated_data["mobile_number"],
+            email=validated_data.get("email"),
+            role=role,
+            login_type="mobile",
+            password=make_password(validated_data["password"]),
+        )
+
+        return user
+
+
+
+
+
+
+
+
