@@ -244,14 +244,12 @@
 
     const foodItemVegFilter = document.getElementById("foodItemVegFilter");
 
-    async function loadFoodItemCategories() {
-
+    async function loadFoodItemCategoriesDropdown() {
         try {
 
             const response = await fetch("/api/food-categories/");
 
             const data = await response.json();
-
             const categories = Array.isArray(data)
                 ? data
                 : data.food_categories || [];
@@ -577,8 +575,7 @@
     });
 
     document.addEventListener("DOMContentLoaded", function() {
-
-        loadFoodItemCategories();
+        loadFoodItemCategoriesDropdown();
 
         loadFoodItems();
     });

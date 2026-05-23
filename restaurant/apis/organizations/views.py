@@ -88,7 +88,7 @@ def change_organization(request):
 
 class OrgAdminViewSet(viewsets.ModelViewSet):
     serializer_class = OrgAdminSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         queryset = OrgAdmin.objects.select_related(

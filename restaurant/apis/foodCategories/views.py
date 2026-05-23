@@ -8,7 +8,7 @@ from .serializers import FoodCategorySerializer
 
 class FoodCategoryViewSet(viewsets.ModelViewSet):
     serializer_class = FoodCategorySerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get_selected_organization(self):
         organization_id = self.request.session.get("selected_org") or self.request.query_params.get("organization_id") or self.request.data.get("organization_id") or self.request.headers.get("X-Organization-Id")
