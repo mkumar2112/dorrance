@@ -37,7 +37,6 @@ class AuthView:
     def login(request):
 
         if request.method == "POST":
-
             mobile_number = request.POST.get("mobile_number")
             password = request.POST.get("password")
 
@@ -56,36 +55,36 @@ class AuthView:
                     messages.error(request, "Your account is inactive")
                     return redirect("/login/")
 
-                if user.check_password(password):
-
-                    login(request, user)
-
-                    user.last_login = timezone.now()
-                    user.last_login_ip = AuthView.get_client_ip(request)
-                    user.last_login_device = request.META.get("HTTP_USER_AGENT", "")
-                    user.save(update_fields=[
-                        "last_login",
-                        "last_login_ip",
-                        "last_login_device"
-                    ])
-
-                    refresh = RefreshToken.for_user(user)
-
-                    request.session["access_token"] = str(refresh.access_token)
-                    request.session["refresh_token"] = str(refresh)
-
-                    messages.success(request, "Login successful")
-
-                    return redirect("/")
-
-                else:
+                if not user.check_password(password):
                     messages.error(request, "Invalid password")
+                    return redirect("/login/")
+
+                # Stateful login for web/session
+                login(request, user)
+
+                user.last_login = timezone.now()
+                user.last_login_ip = AuthView.get_client_ip(request)
+                user.last_login_device = request.META.get("HTTP_USER_AGENT", "")
+                user.save(update_fields=[
+                    "last_login",
+                    "last_login_ip",
+                    "last_login_device"
+                ])
+
+                # Stateless JWT token for APIs
+                refresh = RefreshToken.for_user(user)
+
+                request.session["access_token"] = str(refresh.access_token)
+                request.session["refresh_token"] = str(refresh)
+
+                messages.success(request, "Login successful")
+                return redirect("/")
 
             except User.DoesNotExist:
                 messages.error(request, "User not found")
+                return redirect("/login/")
 
         return render(request, "account/login.html")
-
     @staticmethod
     def get_client_ip(request):
         x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
