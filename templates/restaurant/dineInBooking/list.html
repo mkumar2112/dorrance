@@ -1,0 +1,340 @@
+<div class="card border shadow-sm rounded-3">
+
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-0">
+                <i class="bi bi-calendar-check me-2"></i>
+                Dine In Bookings
+            </h5>
+
+            <small class="text-muted">
+                Manage dine in booking requests
+            </small>
+        </div>
+    </div>
+
+    <div class="card-body">
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-md-3">
+                <label class="form-label">Search</label>
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input
+                        type="text"
+                        id="bookingSearch"
+                        class="form-control"
+                        placeholder="Booking no, customer, mobile..."
+                    >
+                </div>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Table</label>
+                <select id="bookingTableFilter" class="form-select">
+                    <option value="">All Tables</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Status</label>
+                <select id="bookingStatusFilter" class="form-select">
+                    <option value="">All</option>
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="completed">Completed</option>
+                    <option value="no_show">No Show</option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Booking Date</label>
+                <input type="date" id="bookingDateFilter" class="form-control">
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Active</label>
+                <select id="bookingActiveFilter" class="form-select">
+                    <option value="">All</option>
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
+                </select>
+            </div>
+
+            <div class="col-md-1 d-flex align-items-end">
+                <button
+                    type="button"
+                    class="btn btn-secondary w-100"
+                    id="resetBookingFiltersBtn"
+                >
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+
+                <thead class="table-light">
+                    <tr>
+                        <th width="70">S.No.</th>
+                        <th width="150">Booking No</th>
+                        <th>Customer</th>
+                        <th width="140">Table</th>
+                        <th width="120">Date</th>
+                        <th width="100">Time</th>
+                        <th width="90">People</th>
+                        <th width="130">Status</th>
+                        <th width="110">Walk In</th>
+                        <th width="100">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="bookingTableBody">
+                    <tr>
+                        <td colspan="10" class="text-center text-muted py-4">
+                            Loading...
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const bookingTableBody = document.getElementById("bookingTableBody");
+
+    const bookingSearch = document.getElementById("bookingSearch");
+    const bookingTableFilter = document.getElementById("bookingTableFilter");
+    const bookingStatusFilter = document.getElementById("bookingStatusFilter");
+    const bookingDateFilter = document.getElementById("bookingDateFilter");
+    const bookingActiveFilter = document.getElementById("bookingActiveFilter");
+    const resetBookingFiltersBtn = document.getElementById("resetBookingFiltersBtn");
+
+    function getCSRFToken() {
+        const csrfInput = document.querySelector("[name=csrfmiddlewaretoken]");
+        return csrfInput ? csrfInput.value : "";
+    }
+
+    async function loadBookingTablesDropdown() {
+        try {
+            const response = await fetch(DINEIN_TABLE_API_URL);
+            const data = await response.json();
+
+            const tables = Array.isArray(data)
+                ? data
+                : data.results || data.tables || data.dinein_tables || [];
+
+            bookingTableFilter.innerHTML = `<option value="">All Tables</option>`;
+
+            tables.forEach(table => {
+                bookingTableFilter.innerHTML += `
+                    <option value="${table.id}">
+                        ${table.table_code} - ${table.capacity || 0} People
+                    </option>
+                `;
+            });
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    function getBookingStatusBadge(status) {
+        if (status === "pending") {
+            return `<span class="badge bg-warning text-dark">Pending</span>`;
+        }
+
+        if (status === "confirmed") {
+            return `<span class="badge bg-success">Confirmed</span>`;
+        }
+
+        if (status === "rejected") {
+            return `<span class="badge bg-danger">Rejected</span>`;
+        }
+
+        if (status === "cancelled") {
+            return `<span class="badge bg-danger">Cancelled</span>`;
+        }
+
+        if (status === "completed") {
+            return `<span class="badge bg-primary">Completed</span>`;
+        }
+
+        if (status === "no_show") {
+            return `<span class="badge bg-dark">No Show</span>`;
+        }
+
+        return `<span class="badge bg-secondary">${status || "-"}</span>`;
+    }
+
+    function getWalkInBadge(isWalkIn) {
+        return isWalkIn
+            ? `<span class="badge bg-info">Walk In</span>`
+            : `<span class="badge bg-secondary">Online</span>`;
+    }
+
+    async function loadBookings() {
+        bookingTableBody.innerHTML = `
+            <tr>
+                <td colspan="10" class="text-center text-muted py-4">
+                    Loading...
+                </td>
+            </tr>
+        `;
+
+        try {
+            const params = new URLSearchParams();
+
+            const search = bookingSearch.value.trim();
+            const table = bookingTableFilter.value;
+            const status = bookingStatusFilter.value;
+            const bookingDate = bookingDateFilter.value;
+            const isActive = bookingActiveFilter.value;
+
+            if (search) params.append("search", search);
+            if (table) params.append("table", table);
+            if (status) params.append("status", status);
+            if (bookingDate) params.append("booking_date", bookingDate);
+            if (isActive) params.append("is_active", isActive);
+
+            const url = params.toString()
+                ? `${DINEIN_BOOKING_API_URL}?${params.toString()}`
+                : DINEIN_BOOKING_API_URL;
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            const bookings = Array.isArray(data)
+                ? data
+                : data.results || data.bookings || data.dinein_bookings || [];
+
+            if (!response.ok) {
+                bookingTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="text-center text-danger py-4">
+                            ${data.message || "Failed to load bookings"}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            if (!bookings.length) {
+                bookingTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="text-center text-muted py-4">
+                            No bookings found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            bookingTableBody.innerHTML = "";
+
+            bookings.forEach((item, index) => {
+                bookingTableBody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+
+                        <td>
+                            <div class="fw-semibold">
+                                ${item.booking_number || "-"}
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="fw-semibold">
+                                ${item.customer_name || "-"}
+                            </div>
+                            <small class="text-muted">
+                                ${item.customer_mobile || ""}
+                            </small>
+                        </td>
+
+                        <td>
+                            <div class="fw-semibold">
+                                ${item.table_code || "-"}
+                            </div>
+                            <small class="text-muted">
+                                ${item.table_name || ""}
+                            </small>
+                        </td>
+
+                        <td>${item.booking_date || "-"}</td>
+
+                        <td>${item.booking_time || "-"}</td>
+
+                        <td>${item.no_of_people || 0}</td>
+
+                        <td>${getBookingStatusBadge(item.status)}</td>
+
+                        <td>${getWalkInBadge(item.is_walk_in)}</td>
+
+                        <td>
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-primary"
+                                onclick="editDineInBooking(${item.id})"
+                            >
+                                <i class="bi bi-eye"></i>
+                                View
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+        } catch (error) {
+            console.log(error);
+
+            bookingTableBody.innerHTML = `
+                <tr>
+                    <td colspan="10" class="text-center text-danger py-4">
+                        Failed to load bookings
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    let bookingSearchTimeout;
+
+    bookingSearch.addEventListener("keyup", function() {
+        clearTimeout(bookingSearchTimeout);
+
+        bookingSearchTimeout = setTimeout(() => {
+            loadBookings();
+        }, 400);
+    });
+
+    bookingTableFilter.addEventListener("change", loadBookings);
+    bookingStatusFilter.addEventListener("change", loadBookings);
+    bookingDateFilter.addEventListener("change", loadBookings);
+    bookingActiveFilter.addEventListener("change", loadBookings);
+
+    resetBookingFiltersBtn.addEventListener("click", function() {
+        bookingSearch.value = "";
+        bookingTableFilter.value = "";
+        bookingStatusFilter.value = "";
+        bookingDateFilter.value = "";
+        bookingActiveFilter.value = "";
+
+        loadBookings();
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        loadBookingTablesDropdown();
+        loadBookings();
+    });
+</script>

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
-from ...models import User, Role
+from ...models import User, Role, UserProfile
 from django.contrib.auth import authenticate
 
 
@@ -164,7 +164,30 @@ class RegisterSerializer(serializers.Serializer):
 
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    user_mobile = serializers.CharField(source="user.mobile_number", read_only=True)
+    user_email = serializers.EmailField(source="user.email", read_only=True)
+    profile_image_url = serializers.SerializerMethodField()
 
+    class Meta:
+        model = UserProfile
+        fields = "__all__"
+        read_only_fields = [
+            "id",
+            "user",
+            "referral_code",
+            "total_points",
+            "wallet_balance",
+            "is_deleted",
+            "created_at",
+            "updated_at",
+        ]
+
+    def get_profile_image_url(self, obj):
+        request = self.context.get("request")
+        if obj.profile_image and request:
+            return request.build_absolute_uri(obj.profile_image.url)
+        return None
 
 
 

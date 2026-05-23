@@ -21,6 +21,16 @@ class FoodItemsView:
 
 
 
+class DineInView:
+    def dine_in_list(request):
+        return render(request, "restaurant/dineIn/layout.html")  
+      
+    def dine_in_booking_list(request):
+        return render(request, "restaurant/dineInBooking/layout.html")    
+
+
+
+
 
 
 

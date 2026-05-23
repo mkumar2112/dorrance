@@ -3,6 +3,7 @@ from django.utils.text import slugify
 import uuid
 from django.utils import timezone
 from Home.models import *
+from django.core.exceptions import ValidationError
 
 
 
@@ -514,6 +515,37 @@ class Payment(models.Model):
         return self.payment_number
 
 
+class DineInTable(models.Model):
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name="dinein_tables"
+    )
+
+    table_code = models.CharField(max_length=50)
+    table_name = models.CharField(max_length=100, blank=True, null=True)
+
+    capacity = models.PositiveIntegerField(default=1)
+
+    floor = models.CharField(max_length=50, blank=True, null=True)
+    section = models.CharField(max_length=50, blank=True, null=True)
+
+    is_active = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False)
+
+    notes = models.TextField(blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["id"]
+        unique_together = ("organization", "table_code")
+
+    def __str__(self):
+        return f"{self.table_code} - {self.capacity} people"
+
+
 class DineInBooking(models.Model):
     STATUS_CHOICES = (
         ("pending", "Pending"),
@@ -538,14 +570,20 @@ class DineInBooking(models.Model):
         related_name="dinein_bookings"
     )
 
+    table = models.ForeignKey(
+        DineInTable,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="bookings"
+    )
+
     booking_number = models.CharField(max_length=50, unique=True, blank=True)
 
     booking_date = models.DateField()
     booking_time = models.TimeField()
 
     no_of_people = models.PositiveIntegerField()
-
-    table_number = models.CharField(max_length=20, blank=True, null=True)
 
     customer_name = models.CharField(max_length=150)
     customer_mobile = models.CharField(max_length=15)
@@ -586,7 +624,38 @@ class DineInBooking(models.Model):
     class Meta:
         ordering = ["-id"]
 
+    def clean(self):
+        if self.table:
+            if self.organization_id and self.table.organization_id != self.organization_id:
+                raise ValidationError(
+                    "Selected table does not belong to this organization."
+                )
+
+            if self.no_of_people and self.no_of_people > self.table.capacity:
+                raise ValidationError(
+                    f"This table capacity is only {self.table.capacity} people."
+                )
+
+            already_booked = DineInBooking.objects.filter(
+                organization_id=self.organization_id,
+                table=self.table,
+                booking_date=self.booking_date,
+                booking_time=self.booking_time,
+                status__in=["pending", "confirmed"],
+                is_deleted=False,
+            )
+
+            if self.pk:
+                already_booked = already_booked.exclude(pk=self.pk)
+
+            if already_booked.exists():
+                raise ValidationError(
+                    "This table is already booked for this date and time."
+                )
+
     def save(self, *args, **kwargs):
+        self.full_clean()
+
         if not self.booking_number:
             last_id = DineInBooking.objects.count() + 1
             self.booking_number = f"BOOK{timezone.now().strftime('%Y%m%d')}{last_id:05d}"
@@ -595,7 +664,6 @@ class DineInBooking(models.Model):
 
     def __str__(self):
         return self.booking_number
-    
 
 class RewardPointSetting(models.Model):
     organization = models.OneToOneField(

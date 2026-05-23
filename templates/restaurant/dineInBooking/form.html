@@ -1,0 +1,383 @@
+<div class="card border shadow-sm rounded-3">
+
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-0" id="dineInBookingFormTitle">
+                <i class="bi bi-calendar-check me-2"></i>
+                Booking Details
+            </h5>
+
+            <small class="text-muted">
+                View booking details and update booking status
+            </small>
+        </div>
+
+        <button
+            type="button"
+            id="backToDineInBookingListBtn"
+            class="btn btn-outline-secondary btn-sm"
+        >
+            <i class="bi bi-arrow-left"></i>
+            Back To List
+        </button>
+    </div>
+
+    <div class="card-body">
+
+        <form id="dineInBookingForm">
+            {% csrf_token %}
+
+            <input type="hidden" id="bookingId">
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label">Booking Number</label>
+                    <input type="text" id="bookingNumber" class="form-control" disabled>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Organization</label>
+                    <input type="text" id="bookingOrganizationName" class="form-control" disabled>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Customer Name</label>
+                    <input type="text" id="bookingCustomerName" class="form-control" disabled>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Customer Mobile</label>
+                    <input type="text" id="bookingCustomerMobile" class="form-control" disabled>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Table</label>
+                    <input type="text" id="bookingTableName" class="form-control" disabled>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">No Of People</label>
+                    <input type="text" id="bookingPeople" class="form-control" disabled>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Booking Date</label>
+                    <input type="text" id="bookingDate" class="form-control" disabled>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Booking Time</label>
+                    <input type="text" id="bookingTime" class="form-control" disabled>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Walk In</label>
+                    <input type="text" id="bookingWalkIn" class="form-control" disabled>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Active</label>
+                    <input type="text" id="bookingActive" class="form-control" disabled>
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label">Special Request</label>
+                    <textarea id="bookingSpecialRequest" class="form-control" rows="2" disabled></textarea>
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label">Notes</label>
+                    <textarea id="bookingNotes" class="form-control" rows="2" disabled></textarea>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Confirmed At</label>
+                    <input type="text" id="bookingConfirmedAt" class="form-control" disabled>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Completed At</label>
+                    <input type="text" id="bookingCompletedAt" class="form-control" disabled>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Cancelled At</label>
+                    <input type="text" id="bookingCancelledAt" class="form-control" disabled>
+                </div>
+
+                <div class="col-md-12">
+                    <hr>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">
+                        Update Status <span class="text-danger">*</span>
+                    </label>
+
+                    <select id="bookingStatus" class="form-select" required>
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="cancelled">Cancelled</option>
+                        <option value="completed">Completed</option>
+                        <option value="no_show">No Show</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Current Status</label>
+                    <div id="bookingCurrentStatusBox" class="pt-2"></div>
+                </div>
+
+                <div class="col-md-12" id="cancelReasonBox" style="display: none;">
+                    <label class="form-label">
+                        Cancel Reason <span class="text-danger">*</span>
+                    </label>
+                    <textarea
+                        id="bookingCancelReason"
+                        class="form-control"
+                        rows="3"
+                        placeholder="Enter cancel reason"
+                    ></textarea>
+                </div>
+
+                <div class="col-md-12" id="rejectionReasonBox" style="display: none;">
+                    <label class="form-label">
+                        Rejection Reason <span class="text-danger">*</span>
+                    </label>
+                    <textarea
+                        id="bookingRejectionReason"
+                        class="form-control"
+                        rows="3"
+                        placeholder="Enter rejection reason"
+                    ></textarea>
+                </div>
+
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <button
+                    type="button"
+                    id="cancelDineInBookingFormBtn"
+                    class="btn btn-light"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    id="saveBookingStatusBtn"
+                    class="btn btn-primary"
+                >
+                    <i class="bi bi-save me-1"></i>
+                    Update Status
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+    const dineInBookingForm = document.getElementById("dineInBookingForm");
+
+    const bookingId = document.getElementById("bookingId");
+    const bookingNumber = document.getElementById("bookingNumber");
+    const bookingOrganizationName = document.getElementById("bookingOrganizationName");
+    const bookingCustomerName = document.getElementById("bookingCustomerName");
+    const bookingCustomerMobile = document.getElementById("bookingCustomerMobile");
+    const bookingTableName = document.getElementById("bookingTableName");
+    const bookingPeople = document.getElementById("bookingPeople");
+    const bookingDate = document.getElementById("bookingDate");
+    const bookingTime = document.getElementById("bookingTime");
+    const bookingWalkIn = document.getElementById("bookingWalkIn");
+    const bookingActive = document.getElementById("bookingActive");
+    const bookingSpecialRequest = document.getElementById("bookingSpecialRequest");
+    const bookingNotes = document.getElementById("bookingNotes");
+
+    const bookingConfirmedAt = document.getElementById("bookingConfirmedAt");
+    const bookingCompletedAt = document.getElementById("bookingCompletedAt");
+    const bookingCancelledAt = document.getElementById("bookingCancelledAt");
+
+    const bookingStatus = document.getElementById("bookingStatus");
+    const bookingCurrentStatusBox = document.getElementById("bookingCurrentStatusBox");
+    const bookingCancelReason = document.getElementById("bookingCancelReason");
+    const bookingRejectionReason = document.getElementById("bookingRejectionReason");
+
+    const cancelReasonBox = document.getElementById("cancelReasonBox");
+    const rejectionReasonBox = document.getElementById("rejectionReasonBox");
+
+    const saveBookingStatusBtn = document.getElementById("saveBookingStatusBtn");
+
+    let currentBookingData = null;
+
+    function formatDateTime(value) {
+        if (!value) {
+            return "-";
+        }
+
+        return value.replace("T", " ").split(".")[0];
+    }
+
+    function toggleReasonFields() {
+        const status = bookingStatus.value;
+
+        cancelReasonBox.style.display = status === "cancelled" ? "block" : "none";
+        rejectionReasonBox.style.display = status === "rejected" ? "block" : "none";
+    }
+
+    bookingStatus.addEventListener("change", toggleReasonFields);
+
+    function resetDineInBookingForm() {
+        dineInBookingForm.reset();
+
+        bookingId.value = "";
+        currentBookingData = null;
+
+        bookingCancelReason.value = "";
+        bookingRejectionReason.value = "";
+
+        cancelReasonBox.style.display = "none";
+        rejectionReasonBox.style.display = "none";
+        bookingCurrentStatusBox.innerHTML = "";
+    }
+
+    async function editDineInBooking(id) {
+        try {
+            const response = await fetch(`${DINEIN_BOOKING_API_URL}${id}/`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.message || "Unable to fetch booking.");
+                return;
+            }
+
+            const item = data.booking || data.dinein_booking || data;
+
+            currentBookingData = item;
+
+            bookingId.value = item.id || "";
+
+            bookingNumber.value = item.booking_number || "-";
+            bookingOrganizationName.value = item.organization_name || "-";
+            bookingCustomerName.value = item.customer_name || "-";
+            bookingCustomerMobile.value = item.customer_mobile || "-";
+
+            bookingTableName.value = `${item.table_code || "-"} ${item.table_name ? "- " + item.table_name : ""}`;
+            bookingPeople.value = item.no_of_people || 0;
+            bookingDate.value = item.booking_date || "-";
+            bookingTime.value = item.booking_time || "-";
+            bookingWalkIn.value = item.is_walk_in ? "Yes" : "No";
+            bookingActive.value = item.is_active ? "Active" : "Inactive";
+
+            bookingSpecialRequest.value = item.special_request || "";
+            bookingNotes.value = item.notes || "";
+
+            bookingConfirmedAt.value = formatDateTime(item.confirmed_at);
+            bookingCompletedAt.value = formatDateTime(item.completed_at);
+            bookingCancelledAt.value = formatDateTime(item.cancelled_at);
+
+            bookingStatus.value = item.status || "pending";
+            bookingCancelReason.value = item.cancel_reason || "";
+            bookingRejectionReason.value = item.rejection_reason || "";
+
+            bookingCurrentStatusBox.innerHTML = getBookingStatusBadge(item.status);
+
+            toggleReasonFields();
+
+            showFormSection();
+
+        } catch (error) {
+            console.log(error);
+            alert("Something went wrong while loading booking.");
+        }
+    }
+
+    dineInBookingForm.addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        if (!currentBookingData) {
+            alert("Booking data not found.");
+            return;
+        }
+
+        if (bookingStatus.value === "cancelled" && !bookingCancelReason.value.trim()) {
+            alert("Cancel reason is required.");
+            return;
+        }
+
+        if (bookingStatus.value === "rejected" && !bookingRejectionReason.value.trim()) {
+            alert("Rejection reason is required.");
+            return;
+        }
+
+        const id = bookingId.value;
+
+        const payload = {
+            organization: currentBookingData.organization,
+            user: currentBookingData.user,
+            table: currentBookingData.table,
+
+            booking_date: currentBookingData.booking_date,
+            booking_time: currentBookingData.booking_time,
+            no_of_people: currentBookingData.no_of_people,
+
+            customer_name: currentBookingData.customer_name,
+            customer_mobile: currentBookingData.customer_mobile,
+
+            special_request: currentBookingData.special_request || "",
+            is_walk_in: currentBookingData.is_walk_in,
+            is_active: currentBookingData.is_active,
+            notes: currentBookingData.notes || "",
+
+            status: bookingStatus.value,
+            cancel_reason: bookingCancelReason.value.trim(),
+            rejection_reason: bookingRejectionReason.value.trim()
+        };
+
+        saveBookingStatusBtn.disabled = true;
+        saveBookingStatusBtn.innerHTML = `
+            <span class="spinner-border spinner-border-sm me-1"></span>
+            Updating...
+        `;
+
+        try {
+            const response = await fetch(`${DINEIN_BOOKING_API_URL}${id}/`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCSRFToken()
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.message || data.detail || "Unable to update booking status.");
+                return;
+            }
+
+            alert("Booking status updated successfully.");
+
+            resetDineInBookingForm();
+            showListSection();
+
+            if (typeof loadBookings === "function") {
+                loadBookings();
+            }
+
+        } catch (error) {
+            console.log(error);
+            alert("Something went wrong while updating status.");
+        } finally {
+            saveBookingStatusBtn.disabled = false;
+            saveBookingStatusBtn.innerHTML = `
+                <i class="bi bi-save me-1"></i>
+                Update Status
+            `;
+        }
+    });
+</script>

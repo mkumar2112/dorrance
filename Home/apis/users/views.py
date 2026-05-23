@@ -2,8 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from ...models import User
-from .serializers import UserSerializer
+from ...models import User, UserProfile
 
 
 from rest_framework.views import APIView
@@ -12,7 +11,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils import timezone
 
-from .serializers import LoginSerializer, RegisterSerializer
+from .serializers import LoginSerializer, RegisterSerializer, UserProfileSerializer, UserSerializer
 
 
 
@@ -196,4 +195,70 @@ class RegisterAPIView(APIView):
             "errors": serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
 
+class UserProfileViewSet(viewsets.ModelViewSet):
+    serializer_class = UserProfileSerializer
+    # permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        return UserProfile.objects.filter(is_deleted=False)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        profile = self.get_object()
+        profile.is_deleted = True
+        profile.save()
+
+        return Response(
+            {"success": True, "message": "Profile deleted successfully"},
+            status=status.HTTP_200_OK
+        )
+
+    @action(
+        detail=False,
+        methods=["get", "post", "put", "patch"],
+        url_path="me"
+    )
+    def me(self, request):
+        profile, created = UserProfile.objects.get_or_create(
+            user=request.user,
+            defaults={
+                "country": "India",
+            }
+        )
+
+        if request.method == "GET":
+            serializer = self.get_serializer(profile)
+
+            return Response({
+                "success": True,
+                "created": created,
+                "data": serializer.data
+            })
+
+        serializer = self.get_serializer(
+            profile,
+            data=request.data,
+            partial=True
+        )
+
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+
+            return Response({
+                "success": True,
+                "created": created,
+                "message": "Profile saved successfully",
+                "data": serializer.data
+            })
+
+        return Response({
+            "success": False,
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)

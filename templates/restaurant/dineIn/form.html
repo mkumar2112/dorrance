@@ -1,0 +1,255 @@
+<div class="card border shadow-sm rounded-3">
+
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0" id="dineInTableFormTitle">
+            <i class="bi bi-grid-3x3-gap me-2"></i>
+            Create Dine In Table
+        </h5>
+
+        <button type="button" id="backToDineInTableListBtn" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i>
+            Back To List
+        </button>
+    </div>
+
+    <div class="card-body">
+
+        <form id="dineInTableForm">
+            {% csrf_token %}
+
+            <input type="hidden" id="dineInTableId">
+
+            <div class="row g-3">
+
+
+                <div class="col-md-6">
+                    <label class="form-label">Table Code <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-upc"></i></span>
+                        <input type="text" id="dineInTableCode" class="form-control" placeholder="TBL-01" required>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Table Name</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                        <input type="text" id="dineInTableName" class="form-control" placeholder="Table 1">
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Capacity <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-people"></i></span>
+                        <input type="number" id="dineInTableCapacity" class="form-control" min="1" value="1" required>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Floor</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-layers"></i></span>
+                        <input type="text" id="dineInTableFloor" class="form-control" placeholder="Ground Floor">
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Section</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-columns-gap"></i></span>
+                        <input type="text" id="dineInTableSection" class="form-control" placeholder="Main Hall / VIP">
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Active</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-toggle-on"></i></span>
+                        <select id="dineInTableIsActive" class="form-select">
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <label class="form-label">Notes</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                        <textarea id="dineInTableNotes" class="form-control" rows="3" placeholder="Enter notes"></textarea>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <button type="button" id="cancelDineInTableFormBtn" class="btn btn-light">
+                    Cancel
+                </button>
+
+                <button type="submit" id="saveDineInTableBtn" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i>
+                    Save Table
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+
+    const dineInTableForm = document.getElementById("dineInTableForm");
+    const dineInTableFormTitle = document.getElementById("dineInTableFormTitle");
+
+    const dineInTableId = document.getElementById("dineInTableId");
+    const dineInTableCode = document.getElementById("dineInTableCode");
+    const dineInTableName = document.getElementById("dineInTableName");
+    const dineInTableCapacity = document.getElementById("dineInTableCapacity");
+    const dineInTableFloor = document.getElementById("dineInTableFloor");
+    const dineInTableSection = document.getElementById("dineInTableSection");
+    const dineInTableIsActive = document.getElementById("dineInTableIsActive");
+    const dineInTableNotes = document.getElementById("dineInTableNotes");
+
+    function getCSRFToken() {
+        const csrfInput = document.querySelector("[name=csrfmiddlewaretoken]");
+        return csrfInput ? csrfInput.value : "";
+    }
+
+
+    function resetDineInTableForm() {
+        dineInTableForm.reset();
+
+        dineInTableId.value = "";
+        dineInTableFormTitle.innerHTML = `<i class="bi bi-grid-3x3-gap me-2"></i> Create Dine In Table`;
+
+        dineInTableCode.value = "";
+        dineInTableName.value = "";
+        dineInTableCapacity.value = "1";
+        dineInTableFloor.value = "";
+        dineInTableSection.value = "";
+        dineInTableIsActive.value = "true";
+        dineInTableNotes.value = "";
+
+    }
+
+    async function editDineInTable(id) {
+        try {
+            const response = await fetch(`${DINEIN_TABLE_API_URL}${id}/`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: data.message || "Unable to fetch table."
+                });
+                return;
+            }
+
+            const table = data.dinein_table || data.table || data;
+
+            dineInTableId.value = table.id;
+            dineInTableFormTitle.innerHTML = `<i class="bi bi-pencil-square me-2"></i> Edit Dine In Table`;
+
+
+            dineInTableCode.value = table.table_code || "";
+            dineInTableName.value = table.table_name || "";
+            dineInTableCapacity.value = table.capacity || 1;
+            dineInTableFloor.value = table.floor || "";
+            dineInTableSection.value = table.section || "";
+            dineInTableIsActive.value = String(table.is_active);
+            dineInTableNotes.value = table.notes || "";
+
+            showFormSection();
+
+        } catch (error) {
+            console.error(error);
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Something went wrong while fetching table."
+            });
+        }
+    }
+
+    dineInTableForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const id = dineInTableId.value;
+
+        const payload = {
+            table_code: dineInTableCode.value,
+            table_name: dineInTableName.value,
+            capacity: dineInTableCapacity.value,
+            floor: dineInTableFloor.value,
+            section: dineInTableSection.value,
+            is_active: dineInTableIsActive.value === "true",
+            notes: dineInTableNotes.value
+        };
+
+        const url = id ? `${DINEIN_TABLE_API_URL}${id}/` : DINEIN_TABLE_API_URL;
+        const method = id ? "PUT" : "POST";
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCSRFToken()
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                let errorMessage = data.message || data.detail || "Unable to save table.";
+
+                if (data.table_code) {
+                    errorMessage = data.table_code[0];
+                }
+
+                if (data.non_field_errors) {
+                    errorMessage = data.non_field_errors[0];
+                }
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: errorMessage
+                });
+
+                return;
+            }
+
+            Swal.fire({
+                icon: "success",
+                title: "Success",
+                text: data.message || "Table saved successfully.",
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+            resetDineInTableForm();
+            showListSection();
+
+            if (typeof loadDineInTables === "function") {
+                loadDineInTables();
+            }
+
+        } catch (error) {
+            console.error(error);
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Something went wrong while saving table."
+            });
+        }
+    });
+
+</script>

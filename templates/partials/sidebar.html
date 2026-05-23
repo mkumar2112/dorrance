@@ -38,7 +38,12 @@
                                     {% endif %}
                                     {% if 'dine_in_booking' in user.role.permissions or user.is_superuser %}
                                         <li>
-                                            <a href="{% url 'role_list' %}">
+                                            <a href="{% url 'dine_in_list' %}">
+                                                <span data-key="t-calendar">Dine In Tables</span>
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="{% url 'dine_in_booking_list' %}">
                                                 <span data-key="t-calendar">Dine In Bookings</span>
                                             </a>
                                         </li>
