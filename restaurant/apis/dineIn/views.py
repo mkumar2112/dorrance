@@ -1,10 +1,12 @@
 from django.utils import timezone
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, serializers
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from ...models import DineInTable, DineInBooking
 from .serializers import DineInTableSerializer, DineInBookingSerializer
+
+from django.core.exceptions import ValidationError as DjangoValidationError
 
 
 def get_selected_organization_id(request):
@@ -102,16 +104,62 @@ class DineInBookingViewSet(viewsets.ModelViewSet):
 
         return queryset.order_by("-id")
 
+    def handle_exception(self, exc):
+        if isinstance(exc, DjangoValidationError):
+            return Response(
+                {
+                    "success": False,
+                    "message": "Validation failed",
+                    "errors": self.format_django_error(exc),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return super().handle_exception(exc)
+
+    def format_django_error(self, error):
+        if hasattr(error, "message_dict"):
+            return error.message_dict
+
+        if hasattr(error, "messages"):
+            return {"detail": error.messages}
+
+        return {"detail": str(error)}
+
     def perform_create(self, serializer):
         organization_id = get_selected_organization_id(self.request)
 
         if not organization_id:
-            raise ValueError("Organization is not selected in session")
+            raise serializers.ValidationError({
+                "organization": "Organization is not selected."
+            })
 
         serializer.save(
             organization_id=organization_id,
             created_by=self.request.user,
             user=serializer.validated_data.get("user") or self.request.user,
+        )
+
+    def perform_update(self, serializer):
+        organization_id = get_selected_organization_id(self.request)
+
+        if not organization_id:
+            raise serializers.ValidationError({
+                "organization": "Organization is not selected."
+            })
+
+        serializer.save(organization_id=organization_id)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+
+        return Response(
+            {
+                "success": True,
+                "message": "Booking created successfully",
+                "data": response.data,
+            },
+            status=status.HTTP_201_CREATED,
         )
 
     def update(self, request, *args, **kwargs):
@@ -140,15 +188,20 @@ class DineInBookingViewSet(viewsets.ModelViewSet):
 
             instance.save(update_fields=update_fields)
 
-        return response
+        serializer = self.get_serializer(instance)
 
-    def perform_update(self, serializer):
-        organization_id = get_selected_organization_id(self.request)
+        return Response(
+            {
+                "success": True,
+                "message": "Booking updated successfully",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
-        if not organization_id:
-            raise ValueError("Organization is not selected in session")
-
-        serializer.save(organization_id=organization_id)
+    def partial_update(self, request, *args, **kwargs):
+        kwargs["partial"] = True
+        return self.update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -157,6 +210,13 @@ class DineInBookingViewSet(viewsets.ModelViewSet):
         instance.save(update_fields=["is_deleted", "is_active", "updated_at"])
 
         return Response(
-            {"success": True, "message": "Booking deleted successfully"},
+            {
+                "success": True,
+                "message": "Booking deleted successfully",
+            },
             status=status.HTTP_200_OK,
         )
+
+
+
+
