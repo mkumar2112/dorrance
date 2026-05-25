@@ -21,12 +21,11 @@
                                 </a>
                             </li>
 
-                            {% comment %} {{user.role.permissions}} {% endcomment %}
 
                             <li>
                                 <a href="javascript: void(0);" class="has-arrow">
                                     <i data-feather="grid"></i>
-                                    <span data-key="t-apps">Resturant Management</span>
+                                    <span data-key="t-apps">Orders Management</span>
                                 </a>
                                 <ul class="sub-menu" aria-expanded="false">
                                     {% if 'orders' in user.role.permissions or user.is_superuser %}
@@ -37,11 +36,6 @@
                                         </li>
                                     {% endif %}
                                     {% if 'dine_in_booking' in user.role.permissions or user.is_superuser %}
-                                        <li>
-                                            <a href="{% url 'dine_in_list' %}">
-                                                <span data-key="t-calendar">Dine In Tables</span>
-                                            </a>
-                                        </li>
                                         <li>
                                             <a href="{% url 'dine_in_booking_list' %}">
                                                 <span data-key="t-calendar">Dine In Bookings</span>
@@ -55,27 +49,15 @@
                                             </a>
                                         </li>
                                     {% endif %}
-                                    {% if 'feedbacks_view' in user.role.permissions or user.is_superuser %}
-                                        <li>
-                                            <a href="{% url 'role_list' %}">
-                                                <span data-key="t-calendar">Feedbacks</span>
-                                            </a>
-                                        </li>
-                                    {% endif %}
-                                    {% if 'food_item_view' in user.role.permissions or user.is_superuser %}
-                                        <li>
-                                            <a href="{% url 'food_items_list' %}">
-                                                <span data-key="t-calendar">Food Items</span>
-                                            </a>
-                                        </li>
-                                    {% endif %}
-                                    {% if 'food_category_view' in user.role.permissions or user.is_superuser %}
-                                        <li>
-                                            <a href="{% url 'food_category_list' %}">
-                                                <span data-key="t-calendar">Food Categories</span>
-                                            </a>
-                                        </li>
-                                    {% endif %}
+                                </ul>
+                            </li>
+                            <li>
+                                <a href="javascript: void(0);" class="has-arrow">
+                                    <i data-feather="grid"></i>
+                                    <span data-key="t-apps">Rewards & Referrals</span>
+                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
+                                    
                                     {% if 'feedbacks_view' in user.role.permissions or user.is_superuser %}
                                         <li>
                                             <a href="{% url 'role_list' %}">
@@ -99,6 +81,42 @@
                                     {% endif %}
                                 </ul>
                             </li>
+                            <li>
+                                <a href="javascript: void(0);" class="has-arrow">
+                                    <i data-feather="grid"></i>
+                                    <span data-key="t-apps">Resturant Management</span>
+                                </a>
+                                <ul class="sub-menu" aria-expanded="false">
+                                    {% if 'dine_in_booking' in user.role.permissions or user.is_superuser %}
+                                        <li>
+                                            <a href="{% url 'dine_in_list' %}">
+                                                <span data-key="t-calendar">Dine In Tables</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    {% if 'food_item_view' in user.role.permissions or user.is_superuser %}
+                                        <li>
+                                            <a href="{% url 'food_items_list' %}">
+                                                <span data-key="t-calendar">Food Items</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    {% if 'food_category_view' in user.role.permissions or user.is_superuser %}
+                                        <li>
+                                            <a href="{% url 'food_category_list' %}">
+                                                <span data-key="t-calendar">Food Categories</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                    {% if 'organization_gallery_view' in user.role.permissions or user.is_superuser %}
+                                        <li>
+                                            <a href="{% url 'organization_gallery_list' %}">
+                                                <span data-key="t-calendar">Gallery</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </li>
                             {% if user.is_superuser %}
                                 <li>
                                     <a href="javascript: void(0);" class="has-arrow">
@@ -116,6 +134,14 @@
                                                 <span data-key="t-calendar">Roles</span>
                                             </a>
                                         </li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <a href="javascript: void(0);" class="has-arrow">
+                                        <i data-feather="grid"></i>
+                                        <span data-key="t-apps">Organizations</span>
+                                    </a>
+                                    <ul class="sub-menu" aria-expanded="false">
                                         <li>
                                             <a href="{% url 'organization_list' %}">
                                                 <span data-key="t-calendar">Organizations</span>

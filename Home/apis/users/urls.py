@@ -8,7 +8,7 @@ router = DefaultRouter()
 router.register(r"users", UserViewSet, basename="users")
 
 user_profile_router = DefaultRouter()
-user_profile_router.register(r"me", UserProfileViewSet, basename="user-profile")
+user_profile_router.register(r"user-profile", UserProfileViewSet, basename="user-profile")
 
 
 urlpatterns = [

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ...models import Organization, OrgAdmin
+from ...models import Organization, OrgAdmin, OrganizationGallery
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -107,11 +107,43 @@ class OrgAdminSerializer(serializers.ModelSerializer):
         return attrs
 
 
+class OrganizationGallerySerializer(serializers.ModelSerializer):
+    organization_name = serializers.CharField(
+        source="organization.name",
+        read_only=True
+    )
+    image_url = serializers.SerializerMethodField()
 
+    class Meta:
+        model = OrganizationGallery
+        fields = [
+            "id",
+            "organization",
+            "organization_name",
+            "image",
+            "image_url",
+            "title",
+            "description",
+            "is_active",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "organization",
+            "organization_name",
+            "image_url",
+            "created_at",
+            "updated_at",
+        ]
 
-
-
-
+    def get_image_url(self, obj):
+        request = self.context.get("request")
+        if obj.image:
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
 
 
 

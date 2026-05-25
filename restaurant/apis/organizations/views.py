@@ -2,8 +2,8 @@ from rest_framework import viewsets, status
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 
-from ...models import Organization, OrgAdmin
-from .serializers import OrganizationSerializer, OrgAdminSerializer
+from ...models import Organization, OrgAdmin, OrganizationGallery
+from .serializers import OrganizationSerializer, OrgAdminSerializer, OrganizationGallerySerializer
 from rest_framework.permissions import IsAuthenticated
 
 
@@ -184,3 +184,125 @@ class OrgAdminViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_200_OK
         )
+    
+
+
+class OrganizationGalleryViewSet(viewsets.ModelViewSet):
+    serializer_class = OrganizationGallerySerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_selected_organization(self):
+        organization_id = (
+            self.request.session.get("selected_org")
+            or self.request.query_params.get("organization_id")
+            or self.request.data.get("organization_id")
+            or self.request.headers.get("X-Organization-Id")
+        )
+
+        if not organization_id:
+            return None
+
+        return Organization.objects.filter(
+            id=organization_id,
+            is_deleted=False
+        ).first()
+
+    def get_queryset(self):
+        queryset = OrganizationGallery.objects.filter(
+            is_deleted=False
+        ).select_related("organization")
+
+        organization = self.get_selected_organization()
+
+        if organization:
+            queryset = queryset.filter(organization=organization)
+
+        return queryset
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
+
+    def create(self, request, *args, **kwargs):
+        organization = self.get_selected_organization()
+
+        if not organization:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Organization is required"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save(organization=organization)
+
+            return Response(
+                {
+                    "success": True,
+                    "message": "Gallery image added successfully",
+                    "data": serializer.data
+                },
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(
+            {
+                "success": False,
+                "message": "Validation error",
+                "errors": serializer.errors
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+
+        serializer = self.get_serializer(
+            instance,
+            data=request.data,
+            partial=partial
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+
+            return Response(
+                {
+                    "success": True,
+                    "message": "Gallery image updated successfully",
+                    "data": serializer.data
+                },
+                status=status.HTTP_200_OK
+            )
+
+        return Response(
+            {
+                "success": False,
+                "message": "Validation error",
+                "errors": serializer.errors
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    def destroy(self, request, *args, **kwargs):
+        gallery = self.get_object()
+        gallery.is_deleted = True
+        gallery.is_active = False
+        gallery.save()
+
+        return Response(
+            {
+                "success": True,
+                "message": "Gallery image deleted successfully"
+            },
+            status=status.HTTP_200_OK
+        )
+
+

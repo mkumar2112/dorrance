@@ -68,7 +68,29 @@ class Organization(models.Model):
         return self.name
     
 
+class OrganizationGallery(models.Model):
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name="gallery_images"
+    )
 
+    image = models.ImageField(upload_to="organization/gallery/")
+    title = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+
+    is_active = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-id"]
+
+    def __str__(self):
+        return f"{self.organization.name} Gallery"
+    
 
 class OrgAdmin(models.Model):
     user = models.ForeignKey(

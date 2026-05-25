@@ -12,8 +12,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils import timezone
 
 from .serializers import LoginSerializer, RegisterSerializer, UserProfileSerializer, UserSerializer
-
-
+from django.db import IntegrityError, transaction
+from rest_framework.parsers import MultiPartParser, FormParser
 
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
@@ -226,16 +226,30 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         url_path="me"
     )
     def me(self, request):
-        profile, created = UserProfile.objects.get_or_create(
-            user=request.user,
-            defaults={
-                "country": "India",
-            }
-        )
+        try:
+            with transaction.atomic():
+                profile = UserProfile.objects.filter(user=request.user).first()
+
+                if not profile:
+                    profile = UserProfile.objects.create(
+                        user=request.user,
+                        country="India",
+                    )
+                    created = True
+                else:
+                    created = False
+
+                    # If profile was soft deleted, restore it
+                    if profile.is_deleted:
+                        profile.is_deleted = False
+                        profile.save(update_fields=["is_deleted"])
+
+        except IntegrityError:
+            profile = UserProfile.objects.get(user=request.user)
+            created = False
 
         if request.method == "GET":
             serializer = self.get_serializer(profile)
-
             return Response({
                 "success": True,
                 "created": created,
@@ -249,12 +263,12 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         )
 
         if serializer.is_valid():
-            serializer.save(user=request.user)
+            serializer.save(user=request.user, is_deleted=False)
 
             return Response({
                 "success": True,
                 "created": created,
-                "message": "Profile saved successfully",
+                "message": "Profile updated successfully",
                 "data": serializer.data
             })
 
@@ -262,3 +276,55 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             "success": False,
             "errors": serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_or_create_profile(self):
+        profile = UserProfile.objects.filter(user=self.request.user).first()
+
+        if profile:
+            if profile.is_deleted:
+                profile.is_deleted = False
+                profile.save(update_fields=["is_deleted"])
+            return profile, False
+
+        profile = UserProfile.objects.create(
+            user=self.request.user,
+            country="India",
+        )
+        return profile, True
+
+    @action(
+        detail=False,
+        methods=["post", "patch"],
+        url_path="upload-image",
+        parser_classes=[MultiPartParser, FormParser]
+    )
+    def upload_image(self, request):
+        profile, created = self.get_or_create_profile()
+
+        image = request.FILES.get("profile_image")
+
+        if not image:
+            return Response(
+                {
+                    "success": False,
+                    "message": "profile_image is required."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        profile.profile_image = image
+        profile.is_deleted = False
+        profile.save(update_fields=["profile_image", "is_deleted", "updated_at"])
+
+        serializer = self.get_serializer(profile)
+
+        return Response(
+            {
+                "success": True,
+                "created": created,
+                "message": "Profile image uploaded successfully",
+                "data": serializer.data
+            },
+            status=status.HTTP_200_OK
+        )
+

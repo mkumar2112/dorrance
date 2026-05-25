@@ -18,6 +18,12 @@ def get_selected_organization_id(request):
     )
 
 
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
+from django.utils.dateparse import parse_date, parse_time
+
+
 class DineInTableViewSet(viewsets.ModelViewSet):
     serializer_class = DineInTableSerializer
     permission_classes = [IsAuthenticated]
@@ -40,11 +46,117 @@ class DineInTableViewSet(viewsets.ModelViewSet):
 
         return queryset.order_by("id")
 
+    @action(detail=False, methods=["get"], url_path="available-slots")
+    def available_slots(self, request):
+        organization_id = get_selected_organization_id(request)
+
+        if not organization_id:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Organization is not selected."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        booking_date = request.query_params.get("booking_date")
+        booking_time = request.query_params.get("booking_time")
+        no_of_people = request.query_params.get("no_of_people")
+
+        if not booking_date:
+            return Response(
+                {
+                    "success": False,
+                    "message": "booking_date is required. Format: YYYY-MM-DD"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not booking_time:
+            return Response(
+                {
+                    "success": False,
+                    "message": "booking_time is required. Format: HH:MM"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        parsed_date = parse_date(booking_date)
+        parsed_time = parse_time(booking_time)
+
+        if not parsed_date:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Invalid booking_date. Use YYYY-MM-DD."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not parsed_time:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Invalid booking_time. Use HH:MM."
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        tables = DineInTable.objects.filter(
+            organization_id=organization_id,
+            is_active=True,
+            is_deleted=False,
+        )
+
+        if no_of_people:
+            try:
+                no_of_people = int(no_of_people)
+                if no_of_people <= 0:
+                    raise ValueError
+                tables = tables.filter(capacity__gte=no_of_people)
+            except ValueError:
+                return Response(
+                    {
+                        "success": False,
+                        "message": "no_of_people must be a positive number."
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        booked_table_ids = DineInBooking.objects.filter(
+            organization_id=organization_id,
+            booking_date=parsed_date,
+            booking_time=parsed_time,
+            status__in=["pending", "confirmed"],
+            is_deleted=False,
+        ).values_list("table_id", flat=True)
+
+        available_tables = tables.exclude(id__in=booked_table_ids).order_by(
+            "floor",
+            "section",
+            "table_code",
+            "id"
+        )
+
+        serializer = self.get_serializer(available_tables, many=True)
+
+        return Response(
+            {
+                "success": True,
+                "message": "Available tables fetched successfully",
+                "count": available_tables.count(),
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK
+        )
+
     def perform_create(self, serializer):
         organization_id = get_selected_organization_id(self.request)
 
         if not organization_id:
-            raise ValueError("Organization is not selected in session")
+            raise serializers.ValidationError({
+                "organization": "Organization is not selected."
+            })
 
         serializer.save(organization_id=organization_id)
 
@@ -52,7 +164,9 @@ class DineInTableViewSet(viewsets.ModelViewSet):
         organization_id = get_selected_organization_id(self.request)
 
         if not organization_id:
-            raise ValueError("Organization is not selected in session")
+            raise serializers.ValidationError({
+                "organization": "Organization is not selected."
+            })
 
         serializer.save(organization_id=organization_id)
 
@@ -66,7 +180,6 @@ class DineInTableViewSet(viewsets.ModelViewSet):
             {"success": True, "message": "Table deleted successfully"},
             status=status.HTTP_200_OK,
         )
-
 
 class DineInBookingViewSet(viewsets.ModelViewSet):
     serializer_class = DineInBookingSerializer

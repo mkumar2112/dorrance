@@ -6,6 +6,10 @@ from .models import *
 class OrganizationView:
     def organization_list(request):
         return render(request, "restaurant/organizations/layout.html")
+    
+    def organization_gallery_list(request):
+        return render(request, "restaurant/organizations/gallery.html")
+
 
 
 
